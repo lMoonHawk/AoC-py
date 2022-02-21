@@ -5,7 +5,7 @@ def part1():
         "down": 0,
         "up": 0}
 
-    with open("data/2021_2.txt") as f:
+    with open("2021/data/day_02.txt") as f:
         for line in f:
             instruction = line.split()
             counter[instruction[0]] += int(instruction[1])
@@ -24,9 +24,11 @@ def part2():
         "down": 0,
         "up": 0}
 
-    with open("data/2021_2.txt") as f:
+    with open("2021/data/day_02.txt") as f:
         for line in f:
             instruction = line.split()
+
+            # Increment from counter dict and assign new variables: direction, amount
             counter[direction := instruction[0]] += (amount := int(instruction[1]))
 
             if direction == "forward":
