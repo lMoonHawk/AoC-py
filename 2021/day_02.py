@@ -15,6 +15,7 @@ def part1():
 
         print(horizontal * depth)
 
+
 def part2():
 
     depth = 0
@@ -28,8 +29,10 @@ def part2():
         for line in f:
             instruction = line.split()
 
-            # Increment from counter dict and assign new variables: direction, amount
-            counter[direction := instruction[0]] += (amount := int(instruction[1]))
+            # Increment from counter dict and assign new variables:
+            # direction, amount
+            counter[direction := instruction[0]] += \
+                (amount := int(instruction[1]))
 
             if direction == "forward":
                 depth += amount * (counter["down"] - counter["up"])

@@ -30,12 +30,14 @@ def part2():
             else:
                 next_measure = int(line.strip())
                 measures.append(next_measure)
-                # Comparing rolling 3s is equivalent to comparing the set difference
+                # Comparing rolling 3s is equivalent to
+                # comparing the set difference
                 if measures[3] > measures[0]:
                     larger += 1
                 del measures[0]
 
     print(larger)
+
 
 if __name__ == '__main__':
     part1()

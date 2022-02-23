@@ -9,13 +9,13 @@ def part1():
                 counter = [0] * len(bits)
 
             for i, bit in enumerate(bits):
-                if int(bit):    
+                if int(bit):
                     counter[i] += 1
                 else:
                     counter[i] -= 1
 
-    gamma_bin = ''.join(["1" if i>0 else "0" for i in counter])
-    epsilon_bin = ''.join(["1" if i<0 else "0" for i in counter])
+    gamma_bin = ''.join(["1" if i > 0 else "0" for i in counter])
+    epsilon_bin = ''.join(["1" if i < 0 else "0" for i in counter])
 
     print(int(gamma_bin, 2) * int(epsilon_bin, 2))
 
@@ -25,7 +25,7 @@ def part2():
     def average(list):
         return sum(list)/len(list)
 
-    # We can save on str <> int conversion, but average is faster 
+    # We can save on str <> int conversion, but average is faster
     def get_bits(array, mode, iteration=0):
 
         if len(array) == 1:
@@ -36,13 +36,12 @@ def part2():
             # Rounding, making sure 0.5 evaluates to 1
             filter = int(average_bit + 0.5)
             # If we care about the least appearing bit -> flip bit
-            if mode=="fewer":
+            if mode == "fewer":
                 filter = 1 - filter
             # Get the filtered array based on column i
             filtered = [bits for bits in array if bits[iteration] == filter]
             # Recursive call to look at next column
             return get_bits(filtered, mode, iteration + 1)
-
 
     bits_diag: list[list] = []
 
@@ -56,7 +55,6 @@ def part2():
     co_scrub = ''.join([str(bit) for bit in get_bits(bits_diag, "fewer")])
 
     print(int(oxy_gen, 2) * int(co_scrub, 2))
-
 
 
 if __name__ == '__main__':
