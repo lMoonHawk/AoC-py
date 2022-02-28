@@ -20,11 +20,11 @@ def part1():
 
     with open("2021/data/day_07.txt") as f:
         for line in f:
-            nb = line.strip().split(",")
-            nb = list(map(int, nb))
+            positions = line.strip().split(",")
+            positions = list(map(int, positions))
 
-            x = median(nb)
-            print(man_dist(x, nb))
+            x = median(positions)
+            print(man_dist(x, positions))
 
 
 def part2():
@@ -32,7 +32,7 @@ def part2():
     def fuel_consumed(coordinate, crabs):
         run_sum = 0
         for crab in crabs:
-            # 1 +..+ n fuel where n is the distance is an arithmetic sequence
+            # 1 +..+ n fuel where n is the distance, is an arithmetic sequence
             # (1 + d)*(d / 2)
             run_sum += \
                 (1 + abs(crab - coordinate)) * abs(crab - coordinate) // 2
