@@ -38,7 +38,6 @@ def part2():
             signals, outputs = entry.strip().split(" | ")
             signals = signals.split(" ")
             outputs = outputs.split(" ")
-            # print(f"{signals}: {outputs}")
 
             lookup = {8: set("abcdefg")}
 
