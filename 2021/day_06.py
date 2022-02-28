@@ -1,5 +1,5 @@
 def part1():
-    
+
     with open("2021/data/day_06.txt") as f:
         for line in f:
             fishes = line.strip().split(",")
