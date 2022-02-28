@@ -18,7 +18,7 @@ def part1():
 def part2():
     # Counter for rolling 3 increasing
     larger = 0
-    # Keep tracks of only current and last 3 numbers
+    # Keep track of only current and last 3 numbers
     measures = []
 
     with open("2021/data/day_01.txt") as f:
@@ -31,7 +31,7 @@ def part2():
                 next_measure = int(line.strip())
                 measures.append(next_measure)
                 # Comparing rolling 3s is equivalent to
-                # comparing the set difference
+                #   comparing the set difference
                 if measures[3] > measures[0]:
                     larger += 1
                 del measures[0]

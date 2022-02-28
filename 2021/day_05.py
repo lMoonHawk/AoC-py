@@ -59,7 +59,7 @@ def part2():
                 if slope == -1:
                     x_s.reverse()
 
-            # list all the points visited by that line
+            # List all the points visited by that line
             ref = [str(x) + "," + str(y) for x, y in zip(x_s, y_s)]
 
             # Keep points in the dict only if a line has visited
