@@ -3,7 +3,7 @@ def part1():
     rolling_rows = []
 
     def shift(l_in, mode="lag"):
-        """lead or lag list, filling with a 9 where empty"""
+        """Lead or lag list, filling with a 9 where empty"""
         if mode == "lag":
             out = [9] + l_in[:-1]
         elif mode == "lead":
@@ -55,15 +55,15 @@ def part1():
                 continue  # Not enough info to compare (row below)
 
             elif i == 1:
-                # Masks gives a comparison of height with
-                # left, right and bottom
+                # Masks all give a comparison of height
+                # First row: left, right and bottom
                 masks = create_masks(
                     l_in=rolling_rows[0],
                     l_bottom=rolling_rows[1])
                 to_check = rolling_rows[0]
 
             elif i > 1:
-                # left, right, bottom and top
+                # Row in the middle: left, right, bottom and top
                 masks = create_masks(
                     l_in=rolling_rows[1],
                     l_bottom=rolling_rows[2],
@@ -78,7 +78,7 @@ def part1():
             if len(rolling_rows) > 3:
                 rolling_rows.pop(0)
 
-        # left, right and top
+        # Last row: left, right and top
         masks = create_masks(
                     l_in=rolling_rows[2],
                     l_top=rolling_rows[1])
