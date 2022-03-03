@@ -89,9 +89,76 @@ def part1():
 
 
 def part2():
-    pass
+
+    # TODO: Check to see if casting is necessary
+    heightmap: list[list[int]] = []
+
+    def calc_basin(
+            heighmap: list[list[int]], visited: list[list[bool]],
+            basin: list[int], i: int, j: int):
+        """ Visits a location and calls itself on any non-visited neighbors.\n
+        Returns (tuple): the heights in the basin so far
+        and the updated visited array """
+        visited[i][j] = True
+        basin.append(heighmap[i][j])
+
+        last_row = len(heightmap) - 1
+        last_col = len(heightmap[0]) - 1
+
+        # Top
+        if i - 1 >= 0:
+            if not visited[i - 1][j] and heightmap[i - 1][j] != 9:
+                basin, visited = calc_basin(
+                    heightmap, visited, basin, i - 1, j)
+        # Right
+        if j + 1 <= last_col:
+            if not visited[i][j + 1] and heightmap[i][j + 1] != 9:
+                basin, visited = calc_basin(
+                    heightmap, visited, basin, i, j + 1)
+        # Bottom
+        if i + 1 <= last_row:
+            if not visited[i + 1][j] and heightmap[i + 1][j] != 9:
+                basin, visited = calc_basin(
+                    heightmap, visited, basin, i + 1, j)
+        # Left
+        if j - 1 >= 0:
+            if not visited[i][j - 1] and heightmap[i][j - 1] != 9:
+                basin, visited = calc_basin(
+                    heightmap, visited, basin, i, j - 1)
+
+        return (basin, visited)
+
+    with open("2021/data/day_09.txt") as f:
+        for row_char in f:
+            row_char = row_char.strip()
+            # TODO: Check to see if casting is necessary
+            new_row = [int(height) for height in row_char]
+            heightmap.append(new_row)
+
+    rows_count = len(heightmap)
+    cols_count = len(heightmap[0])
+    visited = [[False] * cols_count for i in range(rows_count)]
+
+    # Basins sizes
+    basins: list[int] = []
+
+    for i, row in enumerate(heightmap):
+        for j, height in enumerate(heightmap[i]):
+            if not visited[i][j] and height != 9:
+                # calc_basin returns (as a tuple)
+                # - The length of the calculated basin
+                # - The new visited array
+                new_basin, visited = calc_basin(heightmap, visited, [], i, j)
+                basins.append(new_basin)
+
+    basins_len = map(len, basins)
+    answer = 1
+    for basin_len in sorted(basins_len)[-3:]:
+        answer *= basin_len
+
+    print(answer)
 
 
 if __name__ == '__main__':
-    part1()
+    # part1()
     part2()
