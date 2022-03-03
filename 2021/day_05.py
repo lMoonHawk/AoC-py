@@ -31,6 +31,13 @@ def part1():
 
 def part2():
 
+    def sign(a: int) -> int:
+        if not a:
+            return 0
+        if a > 0:
+            return 1
+        return -1
+
     grid = {}
 
     with open("2021/data/day_05.txt") as f:
@@ -40,24 +47,9 @@ def part2():
             x_1, y_1, x_2, y_2 = [
                 int(pos) for coords in line for pos in coords.split(",")]
 
-            ref = []
-            # Line is horizontal
-            if y_1 == y_2:
-                x_s = list(range(min(x_1, x_2), max(x_1, x_2) + 1))
-                y_s = [y_1] * len(x_s)
-
-            # Line is vertical
-            elif x_1 == x_2:
-                y_s = list(range(min(y_1, y_2), max(y_1, y_2) + 1))
-                x_s = [x_1] * len(y_s)
-
-            # Line is diagonal
-            elif (slope := (x_2 - x_1) / (y_2 - y_1)) in [-1, 1]:
-                x_s = list(range(min(x_1, x_2), max(x_1, x_2) + 1))
-                y_s = list(range(min(y_1, y_2), max(y_1, y_2) + 1))
-                # If bottom left to top right
-                if slope == -1:
-                    x_s.reverse()
+            length = max(abs(x_2 - x_1), abs(y_2 - y_1)) + 1
+            x_s = [x_1 + sign(x_2 - x_1) * i for i in range(length)]
+            y_s = [y_1 + sign(y_2 - y_1) * i for i in range(length)]
 
             # List all the points visited by that line
             ref = [str(x) + "," + str(y) for x, y in zip(x_s, y_s)]
