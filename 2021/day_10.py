@@ -20,7 +20,34 @@ def part1():
 
 
 def part2():
-    pass
+    ref = {')': '(', ']': '[', '}': '{', '>': '<'}
+    score_table = {"(": 1, "[": 2, "{": 3, "<": 4}
+    scores = []
+
+    with open("2021/data/day_10.txt") as f:
+        for line in f:
+            operations = line.strip()
+
+            stack = []
+            corrupt = False
+
+            for operation in operations:
+                if operation in ref.values():
+                    stack.insert(0, operation)
+                elif ref[operation] == stack[0]:
+                    stack.pop(0)
+                else:
+                    corrupt = True
+                    break
+
+            if not corrupt:
+                score = 0
+                for operation in stack:
+                    score = score * 5 + score_table[operation]
+
+                scores.append(score)
+
+    print(sorted(scores)[len(scores) // 2])
 
 
 if __name__ == '__main__':
