@@ -1,6 +1,5 @@
 def parse():
     with open("2021/data/day_20.txt") as f:
-        # Parsing
         input_image = []
         for row, content in enumerate(f):
             content = content.strip()
