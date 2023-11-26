@@ -16,18 +16,18 @@ except ValueError:
     sys.exit()
 
 
-year_directory = os.path.join(os.getcwd(), str(year))
 data_directory = os.path.join(os.getcwd(), str(year), "data")
-
+unfinished_directory = os.path.join(os.getcwd(), str(year), "unfinished")
 try:
     os.makedirs(data_directory)
+    os.makedirs(unfinished_directory)
     print("Directories created successfully")
 except OSError as error:
     print("Directories cannot be created")
     sys.exit()
 
 for day in range(1, 26):
-    open(os.path.join(data_directory, f"day_{day:0>2}.txt"), "w").close()
+    open(os.path.join(unfinished_directory, f"day_{day:0>2}.txt"), "w").close()
 
     template = (
         f'with open("{year}/data/day_{day:0>2}.txt") as f:\n',
@@ -48,8 +48,9 @@ if __name__ == "__main__":
     """,
     )
 
-    with open(os.path.join(year_directory, f"day_{day:0>2}.py"), "w") as f:
+    with open(os.path.join(unfinished_directory, f"day_{day:0>2}.py"), "w") as f:
         f.writelines(template)
 
-print(f"{year}/ python scripts created successfully")
-print(f"{year}/data/ empty inputs created successfully")
+print(f"{year}/unfinished/ py scripts created successfully")
+print(f"{year}/unfinished/ empty txt inputs created successfully")
+print(f"{year}/data/ dir created successfully")
