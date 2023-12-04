@@ -24,12 +24,16 @@ def deal_inc(deck_n: list, inc: int, index):
     return (index * inc) % deck_n
 
 
+def modinv(x, p):
+    return pow(x, -1, p)
+
+
 def rev_cut(deck_n: list, amt: int, index: int):
-    return (index - deck_n + amt) % deck_n
+    return (index + deck_n + amt) % deck_n
 
 
 def rev_deal_inc(deck_n: list, inc: int, index):
-    return (index * pow(inc, -1, deck_n)) % deck_n
+    return modinv(inc, deck_n) * index % deck_n
 
 
 shuffles = {
@@ -44,6 +48,12 @@ rev_shuffles = {
 }
 
 
+def reverse_shuffle(index, deck_n):
+    for inst, arg in reversed(list(shuffle())):
+        index = rev_shuffles[inst](deck_n, arg, index)
+    return index
+
+
 def part1():
     index, n = 2019, 10007
     for inst, arg in shuffle():
@@ -52,7 +62,27 @@ def part1():
 
 
 def part2():
-    return None
+    k = 101741582076661
+    n = 119315717514047
+
+    # reverse_shuffle(index) = a*index + b
+
+    x = 2020
+    # y = a*x+b
+    y = reverse_shuffle(x, n)
+    # z = a*y+b
+    z = reverse_shuffle(y, n)
+    # y - z = a*(x - y)
+    # => a = (y-z)/(x-y)
+    a = (y - z) * modinv(x - y + n, n) % n
+    # => b = y-a*x
+    b = (y - a * x) % n
+
+    # f^k(x) = a^k*x + a^(k-1)*b + a^(k-2)*b + ... + b
+    #        = a^k*x + b * [a^(k-1) + a^(k-2) + ... + 1]
+    #        = a^k*x + b*(a^k-1)/(a-1)
+
+    return (pow(a, k, n) * x + b * (pow(a, k, n) - 1) * modinv(a - 1, n)) % n
 
 
 if __name__ == "__main__":
