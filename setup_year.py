@@ -45,7 +45,7 @@ def part2():
 if __name__ == "__main__":
     print(f"Part 1: {part1()}")
     print(f"Part 2: {part2()}")
-    """,
+""",
     )
 
     with open(os.path.join(unfinished_directory, f"day_{day:0>2}.py"), "w") as f:
