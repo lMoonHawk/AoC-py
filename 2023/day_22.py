@@ -28,13 +28,7 @@ def get_support_tree(bricks, state):
             bricks[k] = down_brick
             state.update(down_brick)
 
-    supports = [[] for _ in range(len(bricks))]
-    for b1 in range(len(bricks) - 1):
-        for b2 in range(b1 + 1, len(bricks)):
-            # Since bricks are sorted by z, b2.z >= b1.z
-            if is_supported_by(bricks[b2], bricks[b1]):
-                supports[b2].append(b1)
-    return supports
+    return [[b1 for b1 in range(b2) if is_supported_by(bricks[b2], bricks[b1])] for b2 in range(len(bricks))]
 
 
 def count_fall(index, supports):
