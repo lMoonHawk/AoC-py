@@ -14,7 +14,7 @@ def is_supported_by(a, b):
     return any(c in b for c in [(x, y, z - 1) for x, y, z in a])
 
 
-def get_supports(bricks, state):
+def get_support_tree(bricks, state):
     bricks.sort(key=lambda x: x[0][2])
     for k, _ in enumerate(bricks):
         while True:
@@ -27,6 +27,7 @@ def get_supports(bricks, state):
                 break
             bricks[k] = down_brick
             state.update(down_brick)
+
     supports = [[] for _ in range(len(bricks))]
     for b1 in range(len(bricks) - 1):
         for b2 in range(b1 + 1, len(bricks)):
@@ -38,8 +39,7 @@ def get_supports(bricks, state):
 
 def count_fall(index, supports):
     indices = set([index])
-    prev_count = None
-    count = 0
+    prev_count, count = None, 0
     while prev_count != count:
         prev_count = count
         for k, support in enumerate(supports):
@@ -50,13 +50,13 @@ def count_fall(index, supports):
 
 
 def part1():
-    supports = get_supports(*get_state())
+    supports = get_support_tree(*get_state())
     single_supports = {s[0] for s in supports if len(s) == 1}
     return len(supports) - len(single_supports)
 
 
 def part2():
-    supports = get_supports(*get_state())
+    supports = get_support_tree(*get_state())
     return sum(count_fall(i, supports) for i in range(len(supports)))
 
 
