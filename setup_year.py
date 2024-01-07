@@ -35,11 +35,11 @@ for day in range(1, 26):
 
 
 def part1():
-    return 0
+    return
 
 
 def part2():
-    return 0
+    return
 
 
 if __name__ == "__main__":
