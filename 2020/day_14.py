@@ -1,64 +1,46 @@
+with open("2020/data/day_14.txt") as f:
+    instructions = [
+        (mask, list(ops)) for mask, *ops in (grp.strip().split("\n") for grp in f.read().split("mask = ")[1:])
+    ]
+
+
+def addr_floating(binary: list[str]):
+    """Generates all possible addresses from an address whith floating bits"""
+    stack = [binary]
+    while stack:
+        address = stack.pop()
+        if "X" in address:
+            k = address.index("X")
+            stack.append(address[:k] + "0" + address[k + 1 :])
+            stack.append(address[:k] + "1" + address[k + 1 :])
+        else:
+            yield address
+
+
 def part1():
     mem = dict()
-
-    with open("2020/data/day_14.txt") as f:
-        for line in f:
-            instruction, value = line.strip().split(" = ")
-            if "mask = " in line:
-                erase_mask = ["1" if bit == "X" else "0" for bit in value]
-                or_mask = ["0" if bit == "X" else bit for bit in value]
-
-                erase_mask = int("".join(erase_mask), 2)
-                or_mask = int("".join(or_mask), 2)
-
-            else:
-                address = int(instruction[instruction.index("[") + 1 : instruction.index("]")])
-                value = int(value)
-
-                mem[address] = (value & erase_mask) | or_mask
-
-    print(sum(mem.values()))
+    for mask, ops in instructions:
+        and_mask = int(mask.replace("X", "1"), 2)
+        or_mask = int(mask.replace("X", "0"), 2)
+        for op in ops:
+            address = int(op[op.index("[") + 1 : op.index("]")])
+            value = int(op.split(" = ")[-1])
+            mem[address] = value & and_mask | or_mask
+    return sum(mem.values())
 
 
 def part2():
     mem = dict()
-
-    def get_floating(binary: list[str]) -> list[tuple[str]]:
-        """Returns all possible addresses from an address whith floating bits"""
-        out = []
-        stack = [binary]
-        while stack:
-            to_split = stack.pop()
-            if "X" in to_split:
-                k = to_split.index("X")
-                stack.append(to_split[:k] + ["0"] + to_split[k + 1 :])
-                stack.append(to_split[:k] + ["1"] + to_split[k + 1 :])
-            else:
-                out.append(tuple(to_split))
-        return out
-
-    with open("2020/data/day_14.txt") as f:
-        for line in f:
-            instruction, value = line.strip().split(" = ")
-            if "mask = " in line:
-                mask = value
-            else:
-                addresses = []
-
-                # Isolate decimal address
-                floating_address = instruction[instruction.index("[") + 1 : instruction.index("]")]
-                # Convert to 36-bit
-                floating_address = f"{int(floating_address):0>36b}"
-                # Apply mask
-                floating_address = [a if m == "0" else m for m, a in zip(mask, floating_address)]
-                # Get all addresses
-                addresses = get_floating(floating_address)
-                for address in addresses:
-                    mem[address] = int(value)
-
-    print(sum(mem.values()))
+    for mask, ops in instructions:
+        for op in ops:
+            floating_address = int(op[op.index("[") + 1 : op.index("]")])
+            value = int(op.split(" = ")[-1])
+            floating_address = [a if m == "0" else m for m, a in zip(mask, f"{floating_address:0>36b}")]
+            for address in addr_floating("".join(floating_address)):
+                mem[address] = value
+    return sum(mem.values())
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

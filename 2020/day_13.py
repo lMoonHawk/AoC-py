@@ -6,30 +6,28 @@ minutes = [m for m, bus_id in enumerate(bus_ids.split(",")) if bus_id != "x"]
 bus_ids = [int(bus_id) for bus_id in bus_ids.split(",") if bus_id != "x"]
 
 
+def ext_euclide(a: int, b: int) -> tuple[int, int]:
+    """Extended euclide algorithm, returning u, v from the Bézout's identity a*u + b*v = gcd(a,b)"""
+    if a == 0:
+        return 0, 1
+    x1, y1 = ext_euclide(b % a, a)
+    x, y = y1 - (b // a) * x1, x1
+    return x, y
+
+
 def part1():
     time = earliest - 1
     found_bus = False
-
     while not found_bus:
         time += 1
         for bus_id in bus_ids:
-            # If there is a bus departing at that time
             if time % bus_id == 0:
                 found_bus = True
                 break
-
-    print((time - earliest) * bus_id)
+    return (time - earliest) * bus_id
 
 
 def part2():
-    def ext_euclide(a: int, b: int) -> tuple[int, int]:
-        """Extended euclide algorithm, returning u, v from the Bézout's identity a*u + b*v = gcd(a,b)"""
-        if a == 0:
-            return 0, 1
-        x1, y1 = ext_euclide(b % a, a)
-        x, y = y1 - (b // a) * x1, x1
-        return x, y
-
     # If bus x must arrive at time t+k, then we have (t+k) ≡ 0 (mod x) <=> t ≡ x-k (mod x)
     # a: Congruences
     a = [bus_id - minute for bus_id, minute in zip(bus_ids, minutes)]
@@ -50,9 +48,9 @@ def part2():
         t += (a_i * n_hat_i * ext_euclide(n_i, n_hat_i)[1]) % n_tot
         # We apply the modulo n_tot since a solution t repeats every n_tot minutes. This makes large numbers more manageable
 
-    print(t % n_tot)
+    return t % n_tot
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

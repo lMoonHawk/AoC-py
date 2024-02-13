@@ -11,11 +11,9 @@ def part1():
     for i, jolt in enumerate(jolts):
         if i == 0:
             current_adapter = 0
-
         diff[jolt - current_adapter - 1] += 1
         current_adapter = jolt
-
-    print(diff[0] * diff[2])
+    return diff[0] * diff[2]
 
 
 def part2():
@@ -26,13 +24,11 @@ def part2():
         # sum(num of ways for each adapter that can reach it)
         ways = sum([j_ways for j, j_ways in tab if jolt - j <= 3])
         tab.append(tuple([jolt, ways]))
-
-        # We can save memory for the tab since an earlier joltage will not reach the current one
         if len(tab) > 3:
             del tab[0]
-    print(tab[-1][1])
+    return tab[-1][1]
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

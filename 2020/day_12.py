@@ -1,85 +1,56 @@
-def part1():
-    class Compass:
-        NORTH = 0
-        EAST = 1
-        SOUTH = 2
-        WEST = 3
+class Vec2:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
 
-    # [East, North]
-    coordinates = [0, 0]
-    facing = Compass.EAST
+    def scalar_mul(self, a):
+        return Vec2(a * self.x, a * self.y)
+
+    def add(self, other):
+        return Vec2(self.x + other.x, self.y + other.y)
+
+    def rotate(self, degrees):
+        rotated = self
+        for _ in range((degrees // 90) % 4):
+            rotated = Vec2(rotated.y, -rotated.x)
+        return rotated
+
+
+directions = {"N": Vec2(0, 1), "E": Vec2(1, 0), "S": Vec2(0, -1), "W": Vec2(-1, 0)}
+
+
+def instructions():
     with open("2020/data/day_12.txt") as f:
-        for line in f:
-            line = line.strip()
-            action, value = line[0], int(line[1:])
+        yield from ((el[0], int(el[1:])) for el in (line.strip() for line in f))
 
-            move = [0, 0]
-            if action == "N" or (action == "F" and facing == Compass.NORTH):
-                move = [0, value]
-            if action == "S" or (action == "F" and facing == Compass.SOUTH):
-                move = [0, -value]
-            if action == "E" or (action == "F" and facing == Compass.EAST):
-                move = [value, 0]
-            if action == "W" or (action == "F" and facing == Compass.WEST):
-                move = [-value, 0]
 
-            if action == "R":
-                facing = (facing + value // 90) % 4
-            if action == "L":
-                facing = (facing - value // 90) % 4
-
-            coordinates = [move_c + c for move_c, c, in zip(move, coordinates)]
-
-    answer = sum(abs(c) for c in coordinates)
-    print(answer)
+def part1():
+    ship, facing = Vec2(), 1
+    for action, value in instructions():
+        if action in "NESW":
+            ship = ship.add(directions[action].scalar_mul(value))
+        elif action == "F":
+            ship = ship.add(directions["NESW"[facing]].scalar_mul(value))
+        elif action in "LR":
+            value = -value if action == "L" else value
+            facing = (facing + value // 90) % 4
+    return abs(ship.x) + abs(ship.y)
 
 
 def part2():
-    # [East, North]
-    ship = [0, 0]
-    waypoint = [10, 1]
-
-    with open("2020/data/day_12.txt") as f:
-        for line in f:
-            line = line.strip()
-            action, value = line[0], int(line[1:])
-
-            move_waypoint = [0, 0]
-            move_ship = [0, 0]
-
-            if action == "F":
-                move_ship = [w * value for w in waypoint]
-            elif action == "N":
-                move_waypoint = 0, value
-            elif action == "E":
-                move_waypoint = value, 0
-            elif action == "S":
-                move_waypoint = 0, -value
-            elif action == "W":
-                move_waypoint = -value, 0
-
-            else:  # ["R", "L"]
-                if action == "L":
-                    value = -value
-
-                w_x, w_y = waypoint
-                rotation = (value // 90) % 4
-                if rotation == 1:
-                    waypoint = w_y, -w_x
-                elif rotation == 2:
-                    waypoint = -w_x, -w_y
-                elif rotation == 3:
-                    waypoint = -w_y, w_x
-                else:  # 0
-                    waypoint = w_x, w_y
-
-            waypoint = [sum(coord) for coord in zip(waypoint, move_waypoint)]
-            ship = [sum(coord) for coord in zip(ship, move_ship)]
-
-    answer = sum(abs(c) for c in ship)
-    print(answer)
+    ship = Vec2()
+    waypoint = Vec2(10, 1)
+    for action, value in instructions():
+        if action == "F":
+            ship = ship.add(waypoint.scalar_mul(value))
+        elif action in directions:
+            waypoint = waypoint.add(directions[action].scalar_mul(value))
+        elif action in "RL":
+            value = -value if action == "L" else value
+            waypoint = waypoint.rotate(value)
+    return abs(ship.x) + abs(ship.y)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

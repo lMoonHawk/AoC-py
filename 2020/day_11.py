@@ -1,56 +1,35 @@
 def get_area():
     with open("2020/data/day_11.txt") as f:
-        return [[char for char in line.strip()] for line in f.readlines()]
+        return [list(line.strip()) for line in f.readlines()]
 
 
 def adjacent(grid, i, j):
-    max_rows = len(grid)
-    max_cols = len(grid[0])
     count = 0
-
-    # 3x3 square of neighbors
-    for k in range(9):
-        o_i = int(k / 3) - 1
-        o_j = k % 3 - 1
-
-        if o_i == 0 and o_j == 0:
-            continue
-        if i + o_i < 0 or i + o_i >= max_rows:
-            continue
-        if j + o_j < 0 or j + o_j >= max_cols:
-            continue
-        if grid[i + o_i][j + o_j] == "#":
-            count += 1
-
+    for ni in range(i - 1, i + 2):
+        for nj in range(j - 1, j + 2):
+            if (ni, nj) == (i, j) or not (0 <= ni < len(grid) and 0 <= nj < len(grid[0])):
+                continue
+            count += grid[ni][nj] == "#"
     return count
 
 
 def see(grid, i, j, inc_i, inc_j):
-    max_rows = len(grid)
-    max_cols = len(grid[0])
     while True:
         i += inc_i
         j += inc_j
-
-        # Out of bounds
-        if i < 0 or i >= max_rows or j < 0 or j >= max_cols:
+        if not (0 <= i < len(grid) and 0 <= j < len(grid[0])):
             return 0
-
-        cell = grid[i][j]
-        if cell == "#":
+        if grid[i][j] == "#":
             return 1
-        if cell == "L":
+        if grid[i][j] == "L":
             return 0
 
 
 def seen(grid, i, j):
     count = 0
-    for k in range(9):
-        o_i = int(k / 3) - 1
-        o_j = k % 3 - 1
-        if o_i == 0 and o_j == 0:
-            continue
-        count += see(grid, i, j, o_i, o_j)
+    for ni in range(-1, 2):
+        for nj in range(-1, 2):
+            count += see(grid, i, j, ni, nj) if (ni, nj) != (0, 0) else 0
     return count
 
 
@@ -61,7 +40,6 @@ def next_round(grid: list[list[str]], method, threshold: int) -> list[list[str]]
             if cell == ".":
                 continue
             nb_adj_occupied = method(grid, i, j)
-
             if nb_adj_occupied == 0:
                 round_grid[i][j] = "#"
             if nb_adj_occupied >= threshold:
@@ -70,38 +48,25 @@ def next_round(grid: list[list[str]], method, threshold: int) -> list[list[str]]
     return round_grid
 
 
-def part1():
+def count_stable(method, threshold):
     next_grid = None
     area = get_area()
-    i = 0
     while next_grid != area:
         if not next_grid:
             next_grid = [row[:] for row in area]
-
         area = next_grid
-        next_grid = next_round(grid=area, method=adjacent, threshold=4)
-        i += 1
+        next_grid = next_round(area, method, threshold)
+    return sum(row.count("#") for row in next_grid)
 
-    answer = sum(row.count("#") for row in next_grid)
-    print(answer)
+
+def part1():
+    return count_stable(adjacent, 4)
 
 
 def part2():
-    next_grid = None
-    area = get_area()
-    i = 0
-    while next_grid != area:
-        if not next_grid:
-            next_grid = [row[:] for row in area]
-
-        area = next_grid
-        next_grid = next_round(grid=area, method=seen, threshold=5)
-        i += 1
-
-    answer = sum(row.count("#") for row in next_grid)
-    print(answer)
+    return count_stable(seen, 5)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
