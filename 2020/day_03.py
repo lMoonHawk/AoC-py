@@ -1,37 +1,28 @@
-def part1():
-    answer = 0
+def gen_rows():
     with open("2020/data/day_03.txt") as f:
-        for row, line in enumerate(f):
-            line = line.strip()
-            if line[row * 3 % len(line)] == "#":
-                answer += 1
+        yield from (row.strip() for row in f)
 
-    print(answer)
+
+def part1():
+    return sum(row[i * 3 % len(row)] == "#" for i, row in enumerate(gen_rows()))
 
 
 def part2():
     slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
     trees = [0] * len(slopes)
+    for i, row in enumerate(gen_rows()):
+        for k, slope in enumerate(slopes):
+            right, down = slope
+            if i % down != 0:
+                continue
+            trees[k] += row[i * right // down % len(row)] == "#"
 
-    with open("2020/data/day_03.txt") as f:
-        for row, line in enumerate(f):
-            line = line.strip()
-
-            for i, slope in enumerate(slopes):
-                right, down = slope
-
-                # If this slope does not hit this row
-                if row % down != 0:
-                    continue
-                # Get correct index (right) by inverting the slope
-                if line[row * right // down % len(line)] == "#":
-                    trees[i] += 1
     answer = 1
     for i in trees:
         answer *= i
-    print(answer)
+    return answer
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

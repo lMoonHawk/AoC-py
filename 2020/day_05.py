@@ -1,39 +1,22 @@
-def part1():
-    answer = 0
-    with open("2020/data/day_05.txt") as f:
-        for line in f:
-            line = line.strip()
-            row_bin, col_bin = line.strip()[:7], line.strip()[7:]
-            #
-            row = int(row_bin.replace("B", "1").replace("F", "0"), 2)
-            col = int(col_bin.replace("R", "1").replace("L", "0"), 2)
-            current_id = row * 8 + col
+with open("2020/data/day_05.txt") as f:
+    seats = [
+        int(el[:7], 2) * 8 + int(el[7:], 2)
+        for el in (line.strip().translate(str.maketrans("BRFL", "1100")) for line in f)
+    ]
 
-            answer = current_id if current_id > answer else answer
-    print(answer)
+
+def part1():
+    return max(seats)
 
 
 def part2():
-    ids = []
-    with open("2020/data/day_05.txt") as f:
-        for line in f:
-            line = line.strip()
-            row_bin, col_bin = line.strip()[:7], line.strip()[7:]
-
-            row = int(row_bin.replace("B", "1").replace("F", "0"), 2)
-            col = int(col_bin.replace("R", "1").replace("L", "0"), 2)
-            ids.append(row * 8 + col)
-
-    # The first missing id found in the sorted list will be our seat
-    # if we start from the first existing id
-    ids.sort()
-    for i, seat_id in enumerate(ids):
-        expected = i + ids[0]
+    min_seat = min(seats)
+    for i, seat_id in enumerate(sorted(seats)):
+        expected = i + min_seat
         if seat_id != expected:
-            print(expected)
-            break
+            return expected
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

@@ -1,65 +1,32 @@
 bags = dict()
 with open("2020/data/day_07.txt") as f:
     for line in f:
-        line = line.strip()
-        key, content = line.split(" bags contain ")
+        key, content = line.strip().split(" bags contain ")
+        bags[key] = [
+            (int(num), " ".join(col)) for num, *col in (bag.split()[:-1] for bag in content.split(", ")) if num != "no"
+        ]
 
-        key = key.replace(" ", "")
-        content = content.replace("bags", "bag").replace(" bag", "").replace(".", "")
-        content = content.split(", ")
 
-        inside = []
-        for bag in content:
-            if bag == "no other":
-                continue
-            number = int("".join(x for x in bag if x.isdigit()))
-            colour = "".join(x for x in bag if x.isalpha())
-            inside.append((number, colour))
-        bags[key] = inside
+def has_shiny_gold(bag):
+    if bag == "shiny gold":
+        return True
+    return any(has_shiny_gold(sub_bag) for _, sub_bag in bags[bag])
+
+
+def cnt_bags(bag):
+    if not bags[bag]:
+        return 1
+    return 1 + sum(cnt * cnt_bags(sub_bag) for cnt, sub_bag in bags[bag])
 
 
 def part1():
-    memo = {key: False for key in bags}
-
-    def traverse_bag(key, path=None):
-        if path is None:
-            path = [key]
-
-        content = bags[key]
-
-        if "shinygold" in [colour for _, colour in content]:
-            return True
-
-        for _, bag in content:
-            new_path = path + [bag]
-            if memo[bag] or traverse_bag(bag, new_path):
-                for has_shinygold in new_path:
-                    memo[has_shinygold] = True
-                return True
-
-        return False
-
-    answer = 0
-    for key in bags:
-        answer += traverse_bag(key)
-    print(answer)
+    return sum(has_shiny_gold(bag) for bag in bags if bag != "shiny gold")
 
 
 def part2():
-    def traverse_count(key):
-        content = bags[key]
-        if not content:
-            return 0
-
-        bag_count = 0
-        for number, colour in content:
-            bag_count += number * (traverse_count(colour) + 1)
-
-        return bag_count
-
-    print(traverse_count("shinygold"))
+    return cnt_bags("shiny gold") - 1  # remove 1 for initial bag
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

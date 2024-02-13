@@ -1,36 +1,16 @@
-def part1():
-    answer = 0
-    grp_set = set()
+def groups():
     with open("2020/data/day_06.txt") as f:
-        for line in f:
-            if line == "\n":
-                answer += len(grp_set)
-                grp_set = set()
+        yield from ([{ans for ans in per} for per in grp.split("\n")] for grp in f.read().strip().split("\n\n"))
 
-            grp_set.update({question for question in line.strip()})
 
-    print(answer + len(grp_set))
+def part1():
+    return sum(len(set.union(*group)) for group in groups())
 
 
 def part2():
-    answer = 0
-    flag_first = True
-    grp_set = set()
-    with open("2020/data/day_06.txt") as f:
-        for line in f:
-            if line == "\n":
-                answer += len(grp_set)
-                flag_first = True
-                continue
-            if flag_first:
-                grp_set = {question for question in line.strip()}
-                flag_first = False
-            else:
-                grp_set.intersection_update({question for question in line.strip()})
-
-    print(answer + len(grp_set))
+    return sum(len(set.intersection(*group)) for group in groups())
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

@@ -1,3 +1,7 @@
+with open("2020/data/day_01.txt") as f:
+    nums = [int(num.strip()) for num in f]
+
+
 def mult_find_sum(nums: list[int], target: int, k: int) -> int:
     if target < 0:
         return None
@@ -11,15 +15,13 @@ def mult_find_sum(nums: list[int], target: int, k: int) -> int:
 
 
 def part1():
-    print(mult_find_sum(nums, 2020, 2))
+    return mult_find_sum(nums, 2020, 2)
 
 
 def part2():
-    print(mult_find_sum(nums, 2020, 3))
+    return mult_find_sum(nums, 2020, 3)
 
 
 if __name__ == "__main__":
-    with open("2020/data/day_01.txt") as f:
-        nums = [int(num.strip()) for num in f]
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
