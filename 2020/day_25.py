@@ -26,13 +26,13 @@ def part1():
     else:
         ek = get_ek(card_pk, door_ls)
 
-    print(ek)
+    return ek
 
 
 def part2():
-    print()
+    return
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

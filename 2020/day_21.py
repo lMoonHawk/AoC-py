@@ -11,7 +11,7 @@ with open("2020/data/day_21.txt") as f:
 
 
 def part1():
-    print(sum(i not in set().union(*allergens.values()) for ingredients in recipes for i in ingredients))
+    return sum(i not in set().union(*allergens.values()) for ingredients in recipes for i in ingredients)
 
 
 def part2():
@@ -22,9 +22,9 @@ def part2():
             # Remove all ingredients that are known to contain another allergen
             allergens[allergen] = ingredients.difference(set([list(i)[0] for i in allergens.values() if len(i) == 1]))
 
-    print(",".join([list(i)[0] for _, i in sorted(allergens.items())]))
+    return ",".join([list(i)[0] for _, i in sorted(allergens.items())])
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

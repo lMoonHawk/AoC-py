@@ -73,7 +73,7 @@ def part1():
         if sum(is_matching(sides(tile_1), sides(tile_2)) for tile_2 in tiles.values() if tile_1 != tile_2) == 2:
             answer *= int(tile_id_1)
 
-    print(answer)
+    return answer
 
 
 def part2():
@@ -148,12 +148,9 @@ def part2():
                     found = True
                     test.update({(x + j, y + i): "0" for x, y in see_monster})
         if found:
-            answer = list(test.values()).count("#")
-            break
-
-    print(answer)
+            return list(test.values()).count("#")
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

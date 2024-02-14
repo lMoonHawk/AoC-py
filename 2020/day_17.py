@@ -13,9 +13,7 @@ def get_neighbors(coord, dim):
     """Returns a generator listing all the neigbors of a cube given a dimension"""
     x, y, z, w = coord
     r = [-1, 0, 1]
-    # 3D: no need to vary w
     r_w = r if dim == 4 else [0]
-
     return ((a + x, b + y, c + z, w + d) for a in r for b in r for c in r for d in r_w)
 
 
@@ -51,7 +49,7 @@ def part1():
     for _ in range(6):
         size = expend(size, 3)
         pocket_dim = next_cycle(pocket_dim, size, 3)
-    print(sum(pocket_dim.values()))
+    return sum(pocket_dim.values())
 
 
 def part2():
@@ -59,9 +57,9 @@ def part2():
     for _ in range(6):
         size = expend(size, 4)
         pocket_dim = next_cycle(pocket_dim, size, 4)
-    print(sum(pocket_dim.values()))
+    return sum(pocket_dim.values())
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

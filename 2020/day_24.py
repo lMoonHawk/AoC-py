@@ -20,16 +20,17 @@ def get_input() -> dict:
     return tiles
 
 
+def get_black_neigh(tiles, coord: tuple[int]) -> int:
+    neighbors = [(coord[0] + t[0], coord[1] + t[1]) for t in traversal.values()]
+    return sum(tiles[neighbor] for neighbor in neighbors if neighbor in tiles)
+
+
 def part1():
-    print(sum(get_input().values()))
+    return sum(get_input().values())
 
 
 def part2():
     tiles = get_input()
-
-    def get_black_neigh(coord: tuple[int]) -> int:
-        neighbors = [(coord[0] + t[0], coord[1] + t[1]) for t in traversal.values()]
-        return sum(tiles[neighbor] for neighbor in neighbors if neighbor in tiles)
 
     for _ in range(100):
         for coord, color in tiles.copy().items():
@@ -41,7 +42,7 @@ def part2():
         snapshot = tiles.copy()
 
         for coord, color in snapshot.items():
-            black_neig_count = get_black_neigh(coord)
+            black_neig_count = get_black_neigh(tiles, coord)
             if color == 1 and (black_neig_count == 0 or black_neig_count > 2):
                 snapshot[coord] = 0
             elif color == 0 and black_neig_count == 2:
@@ -49,9 +50,9 @@ def part2():
 
         tiles = snapshot
 
-    print(sum(tiles.values()))
+    return sum(tiles.values())
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
