@@ -28,33 +28,6 @@ def part1():
 def connecting_nodes(trail, start):
     visited = set()
     paths = [(start, 0)]
-    nodes = []
-    while paths:
-        (x, y), steps = paths.pop()
-        visited.add((x, y))
-        path = []
-        for mx, my in [(0, 1), (1, 0), (-1, 0), (0, -1)]:
-            nx, ny = x + mx, y + my
-            if (nx, ny) in visited:
-                continue
-            if not ((0 <= nx < len(trail[0])) and (0 <= ny < len(trail))):
-                if (x, y) != start:
-                    nodes.append(((x, y), steps))
-                continue
-            if trail[ny][nx] == "#":
-                continue
-            path.append(((nx, ny), steps + 1))
-
-        if len(path) > 1 and (x, y) != start:
-            nodes.append(((x, y), steps))
-        else:
-            paths.extend(path)
-    return nodes
-
-
-def connecting_nodes2(trail, start):
-    visited = set()
-    paths = [(start, 0)]
     nodes = dict()
     while paths:
         (x, y), steps = paths.pop()
@@ -95,7 +68,7 @@ def is_node(x, y, trail):
 
 def part2():
     nodes = {
-        node: connecting_nodes2(trail, node)
+        node: connecting_nodes(trail, node)
         for node in [(x, y) for y, row in enumerate(trail) for x, _ in enumerate(row) if is_node(x, y, trail)]
     }
     last_node = {node_from: node_to[end] for node_from, node_to in nodes.items() if end in node_to}
