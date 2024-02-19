@@ -1,69 +1,34 @@
+with open("2021/data/day_05.txt") as f:
+    lines = [[int(n) for line in row.split(" -> ") for n in line.split(",")] for row in f]
+
+
+def sign(a: int) -> int:
+    return 1 if a > 0 else -1 if a < 0 else 0
+
+
+def count_overlaps(diags):
+    grid = dict()
+    for line in lines:
+        x1, y1, x2, y2 = line
+        if not diags and x1 != x2 and y1 != y2:
+            continue
+        length = max(abs(x2 - x1), abs(y2 - y1)) + 1
+        for k in range(length):
+            point = (x1 + k * sign(x2 - x1), y1 + k * sign(y2 - y1))
+            if point not in grid:
+                grid[point] = 0
+            grid[point] += 1
+    return sum(intersection > 1 for intersection in grid.values())
+
+
 def part1():
-
-    grid = {}
-
-    with open("2021/data/day_05.txt") as f:
-        for line in f:
-            line = line.strip().replace(" ", "").split("->")
-
-            x_1, y_1, x_2, y_2 = [
-                int(pos) for coords in line for pos in coords.split(",")
-            ]
-
-            ref = []
-            # Line is horizontal or vertical
-            if x_1 == x_2:
-                line = list(range(min(y_1, y_2), max(y_1, y_2) + 1))
-                ref = [str(x_1) + "," + str(pos) for pos in line]
-            elif y_1 == y_2:
-                line = list(range(min(x_1, x_2), max(x_1, x_2) + 1))
-                ref = [str(pos) + "," + str(y_1) for pos in line]
-
-            # Keep points in the dict only if a line has visited
-            for point in ref:
-                if point in grid:
-                    grid[point] += 1
-                else:
-                    grid[point] = 1
-
-        print(len([point for point in grid.values() if point > 1]))
+    return count_overlaps(diags=False)
 
 
 def part2():
-
-    def sign(a: int) -> int:
-        if not a:
-            return 0
-        if a > 0:
-            return 1
-        return -1
-
-    grid = {}
-
-    with open("2021/data/day_05.txt") as f:
-        for line in f:
-            line = line.strip().replace(" ", "").split("->")
-
-            x_1, y_1, x_2, y_2 = [
-                int(pos) for coords in line for pos in coords.split(",")]
-
-            length = max(abs(x_2 - x_1), abs(y_2 - y_1)) + 1
-            x_s = [x_1 + sign(x_2 - x_1) * i for i in range(length)]
-            y_s = [y_1 + sign(y_2 - y_1) * i for i in range(length)]
-
-            # List all the points visited by that line
-            ref = [str(x) + "," + str(y) for x, y in zip(x_s, y_s)]
-
-            # Keep points in the dict only if a line has visited
-            for point in ref:
-                if point in grid:
-                    grid[point] += 1
-                else:
-                    grid[point] = 1
-
-        print(len([point for point in grid.values() if point > 1]))
+    return count_overlaps(diags=True)
 
 
-if __name__ == '__main__':
-    part1()
-    part2()
+if __name__ == "__main__":
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

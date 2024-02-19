@@ -1,47 +1,25 @@
-def part1():
-
-    counter = {
-        "forward": 0,
-        "down": 0,
-        "up": 0}
-
+def course():
     with open("2021/data/day_02.txt") as f:
-        for line in f:
-            instruction = line.split()
-            counter[instruction[0]] += int(instruction[1])
+        yield from ((inst, int(val)) for inst, val in (line.split() for line in f))
 
-        horizontal = counter["forward"]
-        depth = counter["down"] - counter["up"]
 
-        print(horizontal * depth)
+def part1():
+    counter = {"forward": 0, "down": 0, "up": 0}
+    for inst, val in course():
+        counter[inst] += val
+    return counter["forward"] * (counter["down"] - counter["up"])
 
 
 def part2():
-
     depth = 0
-
-    counter = {
-        "forward": 0,
-        "down": 0,
-        "up": 0}
-
-    with open("2021/data/day_02.txt") as f:
-        for line in f:
-            instruction = line.split()
-
-            # Increment from counter dict and assign new variables:
-            # direction, amount
-            counter[direction := instruction[0]] += \
-                (amount := int(instruction[1]))
-
-            if direction == "forward":
-                depth += amount * (counter["down"] - counter["up"])
-
-        horizontal = counter["forward"]
-
-        print(horizontal * depth)
+    counter = {"forward": 0, "down": 0, "up": 0}
+    for inst, val in course():
+        counter[inst] += val
+        if inst == "forward":
+            depth += val * (counter["down"] - counter["up"])
+    return counter["forward"] * depth
 
 
-if __name__ == '__main__':
-    part1()
-    part2()
+if __name__ == "__main__":
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
