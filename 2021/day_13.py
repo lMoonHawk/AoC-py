@@ -1,87 +1,55 @@
+class Vec2:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
+
+    def __hash__(self):
+        return hash((self.x, self.y))
+
+    def fold(self, axis, line):
+        if axis == "x":
+            if self.x <= line:
+                return self
+            return Vec2(line * 2 - self.x, self.y)
+        elif axis == "y":
+            if self.y <= line:
+                return self
+            return Vec2(self.x, line * 2 - self.y)
+
+
+with open("2021/data/day_13.txt") as f:
+    dots, folds = f.read().strip().split("\n\n")
+    dots = [Vec2(*[int(n) for n in dot.split(",")]) for dot in dots.split("\n")]
+    folds = [(axis[-1], int(val)) for axis, val in (fold.split("=") for fold in folds.split("\n"))]
+
+
 def part1():
-
-    dots: list[list[int]] = []
-    folds: list[list[str, int]] = []
-    folds_next = False
-
-    # Parsing
-    with open("2021/data/day_13.txt") as f:
-        for line in f:
-            if line != "\n" and not folds_next:
-                coords = line.strip().split(",")
-                dots.append([int(coord) for coord in coords])
-
-            elif line == "\n":
-                folds_next = True
-
-            else:
-                axis, coord = line.strip().split("=")
-                axis = axis[-1:]
-                folds.append([axis, int(coord)])
-
-    final_dots = set()
-    axis, coord = folds[0]
-    index = 0 if axis == "x" else 1
-
+    folded_dots = set()
+    axis, line = folds[0]
     for dot in dots:
-        fold_dot = coord * 2 - dot[index]
-        dot[index] = dot[index] if dot[index] < coord else fold_dot
-
-        final_dots.add(tuple(dot))
-
-    print(len(final_dots))
+        folded_dots.add(dot.fold(axis, line))
+    return len(folded_dots)
 
 
 def part2():
-    dots: list[list[int]] = []
-    folds: list[list[str, int]] = []
-    folds_next = False
-    page = list[list[bool]]
+    unique_dots = set(dots)
+    for axis, line in folds:
+        folded_dots = set()
+        for dot in unique_dots:
+            folded_dots.add(dot.fold(axis, line))
+        unique_dots = folded_dots
 
-    # Parsing
-    with open("2021/data/day_13.txt") as f:
-        for line in f:
-            if line != "\n" and not folds_next:
-                coords = line.strip().split(",")
-                dots.append([int(coord) for coord in coords])
-
-            elif line == "\n":
-                folds_next = True
-
-            else:
-                axis, coord = line.strip().split("=")
-                axis = axis[-1:]
-                folds.append([axis, int(coord)])
-
-    col_count = 0
-    row_count = 0
-
-    for axis, coord in folds:
-        # Last folding instruction called for each axis is the final page size
-        col_count = coord if axis == "x" else col_count
-        row_count = coord if axis == "y" else row_count
-
-        index = 0 if axis == "x" else 1
-
-        for dot in dots:
-            fold_dot = coord * 2 - dot[index]
-            dot[index] = dot[index] if dot[index] < coord else fold_dot
-
-    # Unique dots
-    dots = set([tuple(dot) for dot in dots])
-
-    page = [[False] * col_count for i in range(row_count)]
-
-    for dot in dots:
-        if dot:
-            page[dot[1]][dot[0]] = True
-
-    for line in page:
-        for dot in line:
-            print("#" if dot else " ", end="")
-        print("\n", end="")
+    buffer = "\n"
+    for i in range(max(dot.y for dot in unique_dots) + 1):
+        for j in range(max(dot.x for dot in unique_dots) + 1):
+            buffer += "##" if Vec2(j, i) in unique_dots else "  "
+        buffer += "\n"
+    return buffer
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
