@@ -1,95 +1,43 @@
+def dict_append(d, k, v):
+    if k not in d:
+        d[k] = []
+    d[k].append(v)
+
+
+graph = dict()
+with open("2021/data/day_12.txt") as f:
+    for line in f:
+        c1, c2 = line.strip().split("-")
+        dict_append(graph, c1, c2)
+        dict_append(graph, c2, c1)
+
+
+def traverse(graph, node, small_cave_quota, visited=None):
+    if visited is None:
+        visited = set()
+    if node == "end":
+        return 1
+    if node.islower():
+        visited.add(node)
+    paths = 0
+    for subnode in graph[node]:
+        new_quota = small_cave_quota
+        if subnode in visited:
+            if new_quota == 0 or subnode == "start":
+                continue
+            new_quota -= 1
+        paths += traverse(graph, subnode, new_quota, visited.copy())
+    return paths
+
+
 def part1():
-
-    def create_cave(a, b):
-        if a in graph:
-            graph[a].append(b)
-        else:
-            graph[a] = [b]
-
-    def search(vertex: str, path_so_far=None):
-        if path_so_far is None:
-            path_so_far = []
-
-        # Visit cave
-        path_so_far += [vertex]
-        # If end reached, append to the list of paths
-        if vertex == "end":
-            paths.append(list(path_so_far))
-
-        for next_vertex in graph[vertex]:
-            # Don't visit the same small cave twice
-            if not (next_vertex.islower() and next_vertex in path_so_far):
-                search(next_vertex, list(path_so_far))
-
-    graph: dict[str, str] = {}
-    paths: list[list[str]] = []
-
-    with open("2021/data/day_12.txt") as f:
-        for line in f:
-            connection = line.strip().split("-")
-            # Graph construction
-            create_cave(connection[0], connection[1])
-            create_cave(connection[1], connection[0])
-
-        # Depth search
-        search("start")
-
-    print(len(paths))
+    return traverse(graph, node="start", small_cave_quota=0)
 
 
 def part2():
-    def create_cave(a, b):
-        if a in graph:
-            graph[a].append(b)
-        else:
-            graph[a] = [b]
-
-    def search(vertex: str, path_so_far=None):
-        if path_so_far is None:
-            path_so_far = []
-
-        # Visit cave
-        path_so_far += [vertex]
-        # If end reached, append to the list of paths
-        if vertex == "end":
-            paths.append(list(path_so_far))
-            # print(paths)
-
-        for next_vertex in graph[vertex]:
-            # Count nb of small cave visited
-            nb_small = {
-                cave: path_so_far.count(cave)
-                for cave in path_so_far if cave.islower()}
-            # list all visited more than once
-            visited = [value for value in nb_small.values() if value > 1]
-            # Nb visited more than once
-            multi_visited = len(visited)
-
-            single_visited = 0
-            if visited:
-                # Max time a small cave has been visited
-                single_visited = max(visited)
-
-            if (multi_visited < 2 and single_visited < 3 and
-                    "end" not in path_so_far and next_vertex != "start"):
-                search(next_vertex, list(path_so_far))
-
-    graph: dict[str, str] = {}
-    paths: list[list[str]] = []
-
-    with open("2021/data/day_12.txt") as f:
-        for line in f:
-            connection = line.strip().split("-")
-            # Graph construction
-            create_cave(connection[0], connection[1])
-            create_cave(connection[1], connection[0])
-
-        # Depth search
-        search("start")
-
-    print(len(paths))
+    return traverse(graph, node="start", small_cave_quota=1)
 
 
-if __name__ == '__main__':
-    part1()
-    part2()
+if __name__ == "__main__":
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
