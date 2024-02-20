@@ -1,60 +1,26 @@
+def get_school_ini():
+    with open("2021/data/day_06.txt") as f:
+        fishes = (int(age) for age in f.read().strip().split(","))
+    school = [0 for _ in range(9)]
+    for timer in fishes:
+        school[timer] += 1
+    return school
+
+
+def count_fishes(sc, days):
+    for _ in range(1, days + 1):
+        sc = [sc[1], sc[2], sc[3], sc[4], sc[5], sc[6], sc[0] + sc[7], sc[8], sc[0]]
+    return sum(sc)
+
+
 def part1():
-
-    with open("2021/data/day_06.txt") as f:
-        for line in f:
-            fishes = line.strip().split(",")
-            fishes = list(map(int, fishes))
-
-            school = []
-            for i in range(80 + 1):
-                # Keep track of number of fish by index = timer
-                school.append(len([fish for fish in fishes if fish == i]))
-
-            for i in range(1, 80 + 1):
-                school = [
-                    school[1],
-                    school[2],
-                    school[3],
-                    school[4],
-                    school[5],
-                    school[6],
-                    school[0] + school[7],
-                    school[8],
-                    school[0]
-                ]
-
-            print(sum(school))
+    return count_fishes(get_school_ini(), 80)
 
 
-# Exact same function... with 256 days instead of 80
 def part2():
-
-    with open("2021/data/day_06.txt") as f:
-        for line in f:
-            fishes = line.strip().split(",")
-            fishes = list(map(int, fishes))
-
-            school = []
-            for i in range(8 + 1):
-                # Keep track of number of fish by index = timer
-                school.append(len([fish for fish in fishes if fish == i]))
-
-            for i in range(1, 256 + 1):
-                school = [
-                    school[1],
-                    school[2],
-                    school[3],
-                    school[4],
-                    school[5],
-                    school[6],
-                    school[0] + school[7],
-                    school[8],
-                    school[0]
-                ]
-
-            print(sum(school))
+    return count_fishes(get_school_ini(), 256)
 
 
-if __name__ == '__main__':
-    part1()
-    part2()
+if __name__ == "__main__":
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
