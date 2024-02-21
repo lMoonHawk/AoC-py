@@ -1,110 +1,83 @@
-def array_get(array: list[list], t: tuple[int, int]):
-    return array[t[0]][t[1]]
+class Heap(list):
+    def push(self, item):
+        self.append(item)
+        self.sift_up(len(self) - 1)
 
+    def pop(self):
+        self[-1], self[0] = self[0], self[-1]
+        out = super().pop()
+        if self:
+            self.sift_down()
+        return out
 
-def array_set(array: list[list], t: tuple[int, int], v):
-    array[t[0]][t[1]] = v
-
-
-def a_star(grid, start, end) -> int:
-    """A* Algorithm, returns total cost of the best path"""
-    # G: Cost so far
-    # H: Heuristic, estimation of cost from current to end
-    # F: G + H, current estimation for positions value
-
-    size = len(grid)
-
-    # initialize F, G, H
-    g_array = [[float("inf")] * size for i in range(size)]
-    array_set(g_array, start, 0)
-    # H is the number of cells from i, j to the end
-    h_array = [
-        [2 * size - i - j - 2 for j in range(size)] for i in range(size)
-    ]
-    f_array = [[float("inf")] * size for i in range(size)]
-    array_set(f_array, start, array_get(h_array, start))
-
-    opened = [start]
-    closed = []
-
-    while opened:
-        current = opened[0]
-        # Select current best position (minimize F)
-        for position in opened:
-            if array_get(f_array, position) < array_get(f_array, current):
-                current = position
-
-        # Close it
-        opened.remove(current)
-        closed.append(position)
-
-        # If best is "end", solution found
-        if current == end:
-            return array_get(g_array, end)
-
-        # Add neighbors to the "opened" list
-        for offset in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
-            neighbor = (current[0] + offset[0], current[1] + offset[1])
-
-            # If outside grid, stop current neighbor
-            underflow = any([pos < 0 for pos in neighbor])
-            overflow = any([pos > size - 1 for pos in neighbor])
-            if underflow or overflow:
+    def sift_up(self, pos):
+        item = self[pos]
+        while pos:
+            parentpos = (pos - 1) // 2
+            parent = self[parentpos]
+            if item < parent:
+                self[pos], pos = parent, parentpos
                 continue
+            break
+        self[pos] = item
 
-            # G of neighbor is G of current + grid value
-            g = array_get(g_array, current) + array_get(grid, neighbor)
-            # If this G is better than previous one
-            # (better path to neighbor found)
-            if g < array_get(g_array, neighbor):
-                # Update G array
-                array_set(g_array, neighbor, g)
-                # Update F array
-                h = array_get(h_array, neighbor)
-                array_set(f_array, neighbor, g + h)
+    def sift_down(self):
+        n = len(self)
+        pos = 0
+        l_child_pos = min_child_pos = 1
+        item = self[0]
+        while l_child_pos < n:
+            min_child_pos, r_child_pos = l_child_pos, l_child_pos + 1
+            if r_child_pos < n and self[l_child_pos] > self[r_child_pos]:
+                min_child_pos = r_child_pos
+            self[pos] = self[min_child_pos]
+            pos = min_child_pos
+            l_child_pos = 2 * pos + 1
+        self[pos] = item
+        self.sift_up(pos)
 
-                opened.append(neighbor)
+
+with open("2021/data/day_15.txt") as f:
+    cave = [[int(risk) for risk in line.strip()] for line in f]
+
+
+def a_star(grid) -> int:
+    """A* Algorithm, returns total cost of the best path"""
+    size = len(grid)
+    pqueue = Heap()
+    pqueue.push((0, 0, 0))
+    cache_best = {(0, 0): 0}
+
+    while pqueue:
+        exp_tot_risk, x, y = pqueue.pop()
+        if (x, y) == (size - 1, size - 1):
+            return exp_tot_risk
+
+        for nx, ny in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]:
+            if not (0 <= nx < size and 0 <= ny < size):
+                continue
+            total_risk = cache_best[(x, y)] + grid[nx][ny]
+            if (nx, ny) in cache_best and cache_best[(nx, ny)] <= total_risk:
+                continue
+            cache_best[(nx, ny)] = total_risk
+            heuristic = 2 * (size - 1) - nx - ny
+            pqueue.append((total_risk + heuristic, nx, ny))
 
 
 def part1():
-
-    cave: list[list[int]] = []
-
-    # Parsing
-    with open("2021/data/day_15.txt") as f:
-        for line in f:
-            row = [int(risk) for risk in list(line.strip())]
-            cave.append(row)
-
-    size = len(cave)
-    result = a_star(cave, (0, 0), (size - 1, size - 1))
-    print(result)
+    return a_star(cave)
 
 
 def part2():
-
-    cave: list[list[int]] = []
-
-    # Parsing
-    with open("2021/data/day_15.txt") as f:
-        for line in f:
-            row = [int(risk) for risk in list(line.strip())]
-            cave.append(row)
-
-    size = len(cave)
-
-    for row in cave:
-        row.extend([(el + i) % 9 + 1 for i in range(4) for el in row])
-    for k in range(4):
-        for j in range(size):
-            new_row = [(el + k) % 9 + 1 for el in cave[j]]
-            cave.append(new_row)
-
-    size = len(cave)
-    result = a_star(cave, (0, 0), (size - 1, size - 1))
-    print(result)
+    big_cave = [[0 for _ in range(len(cave[0]) * 5)] for _ in range(len(cave) * 5)]
+    for i, row in enumerate(big_cave):
+        for j, _ in enumerate(row):
+            grid_y, cave_y = divmod(i, len(cave))
+            grid_x, cave_x = divmod(j, len(cave[0]))
+            big_cave[i][j] = (cave[cave_y][cave_x] + grid_x + grid_y - 1) % 9 + 1
+    return a_star(big_cave)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

@@ -1,155 +1,87 @@
+with open("2021/data/day_16.txt") as f:
+    bits = "".join(f"{int(h, 16):0>4b}" for h in f.readline().strip())
+
+
+def prod(lst):
+    out = 1
+    for n in lst:
+        out *= n
+    return out
+
+
+op = {
+    0: sum,
+    1: prod,
+    2: min,
+    3: max,
+    4: lambda x: x,
+    5: lambda x: x[0] > x[1],
+    6: lambda x: x[0] < x[1],
+    7: lambda x: x[0] == x[1],
+}
+
+
+def chop_int(n, bits, k):
+    return int(bits[k : k + n], 2), k + n
+
+
+def parse_literal(bits, k):
+    value, prefix = 0, 1
+    while prefix:
+        group, k = chop_int(5, bits, k)
+        prefix = group >> 4
+        value = (value << 4) + (group & 0xF)
+    return value, k
+
+
+def parse_operator(bits, k, get_version):
+    length_id, k = chop_int(1, bits, k)
+    values = []
+
+    if length_id == 0:
+        sub_length, k = chop_int(15, bits, k)
+        start = k
+        while k < start + sub_length:
+            value, k = parse_packet(bits, k, get_version)
+            values.append(value)
+
+    elif length_id == 1:
+        sub_count, k = chop_int(11, bits, k)
+        for _ in range(sub_count):
+            value, k = parse_packet(bits, k, get_version)
+            values.append(value)
+
+    return values, k
+
+
+def parse_packet(bits, k, get_version):
+    version, k = chop_int(3, bits, k)
+    type_id, k = chop_int(3, bits, k)
+
+    if type_id == 4:
+        value, k = parse_literal(bits, k)
+        sub_packets = value if not get_version else []
+    else:
+        sub_packets, k = parse_operator(bits, k, get_version)
+
+    if get_version:
+        return sum(sub_packets) + version, k
+    return op[type_id](sub_packets), k
+
+
+def parse_transmission(bits, get_version=False):
+    out, _ = parse_packet(bits, 0, get_version)
+    return out
+
+
 def part1():
-    def l_bin2dec(l_bin: list[str]):
-        return int("".join(l_bin), 2)
-
-    def parse(k, convert=False):
-        out = bin_line[:k]
-        del bin_line[:k]
-        if convert:
-            out = l_bin2dec(out)
-        return out
-
-    def parse_literal():
-        out = []
-        stop = False
-        while not stop:
-            if bin_line[0] == "0":
-                stop = True
-            # header
-            del bin_line[0]
-            # group
-            out += parse(4)
-        return l_bin2dec(out)
-
-    def parse_packet():
-        version = parse(3, convert=True)
-        type_id = parse(3, convert=True)
-
-        version_sum = version
-
-        if type_id == 4:
-            parse_literal()
-        else:
-            if parse(1, convert=True):
-                nb_subpackets = parse(11, convert=True)
-                for _ in range(nb_subpackets):
-                    version_sum += parse_packet()
-
-            else:
-                size_subpackets = parse(15, convert=True)
-                current_size = len(bin_line)
-                while current_size - len(bin_line) < size_subpackets:
-                    version_sum += parse_packet()
-        return version_sum
-
-    # Parsing
-    with open("2021/data/day_16.txt") as f:
-        hex_line = f.readline()
-
-    bin_line = []
-    for hex_num in hex_line:
-        # Convert hex to 4 bit binary
-        bin_line.extend(format(int(hex_num, 16), "0>4b"))
-
-    print(parse_packet())
+    return parse_transmission(bits, get_version=True)
 
 
 def part2():
-    def l_bin2dec(l_bin: list[str]):
-        """Joins a list of bit to a decimal"""
-        return int("".join(l_bin), 2)
-
-    def parse(k, convert=False):
-        """Parses k elements from the line and removes from the stack.\n
-        If convert=True, returns a decimal"""
-        out = bin_line[:k]
-        del bin_line[:k]
-        if convert:
-            out = l_bin2dec(out)
-        return out
-
-    def parse_literal():
-        out = []
-        stop = False
-        while not stop:
-            if bin_line[0] == "0":
-                stop = True
-            # header
-            del bin_line[0]
-            # group
-            out += parse(4)
-        return l_bin2dec(out)
-
-    def packet_prod(l_in: list):
-        out = 1
-        for x in l_in:
-            out *= x
-        return out
-
-    def packet_gt(l_in: list):
-        if l_in[0] > l_in[1]:
-            return 1
-        else:
-            return 0
-
-    def packet_lt(l_in: list):
-        if l_in[0] < l_in[1]:
-            return 1
-        else:
-            return 0
-
-    def packet_eq(l_in: list):
-        if l_in[0] == l_in[1]:
-            return 1
-        else:
-            return 0
-
-    operators = {
-        0: sum,
-        1: packet_prod,
-        2: min,
-        3: max,
-        5: packet_gt,
-        6: packet_lt,
-        7: packet_eq,
-    }
-
-    def parse_packet():
-        _ = parse(3, convert=True)  # Version
-        type_id = parse(3, convert=True)
-
-        if type_id == 4:
-            return parse_literal()
-        else:
-            operation = operators[type_id]
-
-            # Control flow for type of length type ID
-            if parse(1, convert=True):
-                nb_subpackets = parse(11, convert=True)
-                subpacket = []
-                for _ in range(nb_subpackets):
-                    subpacket.append(parse_packet())
-            else:
-                size_subpackets = parse(15, convert=True)
-                current_size = len(bin_line)
-                subpacket = []
-                while current_size - len(bin_line) < size_subpackets:
-                    subpacket.append(parse_packet())
-
-            return operation(subpacket)
-
-    # Parsing
-    with open("2021/data/day_16.txt") as f:
-        hex_line = f.readline()
-
-    bin_line = []
-    for hex_num in hex_line:
-        # Convert hex to 4 bit binary
-        bin_line.extend(format(int(hex_num, 16), "0>4b"))
-
-    print(parse_packet())
+    return parse_transmission(bits)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
