@@ -1,99 +1,60 @@
-def parse():
-    with open("2021/data/day_21.txt") as f:
-        for line in f:
-            player, pos = line.strip().split(" starting position: ")
-            if player == "Player 1":
-                p1_pos = int(pos)
-            else:
-                p2_pos = int(pos)
-
-        return p1_pos, p2_pos
+with open("2021/data/day_21.txt") as f:
+    pos_init = [int(line.split()[-1]) for line in f]
 
 
 def deter_rolls():
     i = 0
     while True:
-        yield i % 100 + (i + 1) % 100 + (i + 2) % 100 + 3
-        i += 3
+        value = 0
+        for _ in range(3):
+            i = i % 100 + 1
+            value += i
+        yield value
 
 
 def dirac_rolls():
-    for i in range(1, 4):
-        for j in range(1, 4):
-            for k in range(1, 4):
-                yield i + j + k
+    return (r1 + r2 + r3 for r1 in range(1, 4) for r2 in range(1, 4) for r3 in range(1, 4))
 
 
-def play_turn(pos, score, dice):
-    pos = (pos + next(dice) - 1) % 10 + 1
-    score += pos
-    return pos, score
+def run_dirac(pos, scores=None, player=0, memo={}):
+    if scores is None:
+        scores = [0, 0]
+    rid = tuple(pos + scores + [player])
+    if rid in memo:
+        return memo[rid]
+    if scores[0] >= 21:
+        return 1, 0
+    if scores[1] >= 21:
+        return 0, 1
 
-
-def play_game(p1_pos, p2_pos):
-    p1_score, p2_score = 0, 0
-
-    dice = deter_rolls()
-    dice_rolls = 0
-    while True:
-        p1_pos, p1_score = play_turn(p1_pos, p1_score, dice)
-        dice_rolls += 3
-
-        if p1_score >= 1000:
-            return p2_score, dice_rolls
-
-        p2_pos, p2_score = play_turn(p2_pos, p2_score, dice)
-        dice_rolls += 3
-
-        if p2_score >= 1000:
-            return p2_score, dice_rolls
+    total_scores = (0, 0)
+    for roll in dirac_rolls():
+        new_pos = pos.copy()
+        new_scores = scores.copy()
+        new_pos[player] = (pos[player] + roll - 1) % 10 + 1
+        new_scores[player] += new_pos[player]
+        win_cnt = run_dirac(new_pos, new_scores, 1 - player)
+        total_scores = total_scores[0] + win_cnt[0], total_scores[1] + win_cnt[1]
+    memo[rid] = total_scores
+    return total_scores
 
 
 def part1():
-    p1_pos, p2_pos = parse()
-    loser_score, dice_rolls = play_game(p1_pos, p2_pos)
-    print(loser_score * dice_rolls)
-
-
-def board(pos):
-    return (pos - 1) % 10 + 1
-
-
-def wins(p1_score, p2_score, p1_pos, p2_pos, turn, memo={}):
-    # Memoization, return early if answer already known
-    key = f"{p1_score},{p2_score},{p1_pos},{p2_pos},{turn}"
-    if key in memo:
-        return memo[key]
-
-    if p1_score >= 21:
-        return 1, 0
-    if p2_score >= 21:
-        return 0, 1
-
-    tot_p1_wins = 0
-    tot_p2_wins = 0
-    # No need to arg memo as dict is mutable
-    for roll in dirac_rolls():
-        if turn == "p1":
-            new_pos = board(p1_pos + roll)
-            win_cnt = wins(p1_score + new_pos, p2_score, new_pos, p2_pos, "p2")
-        else:
-            new_pos = board(p2_pos + roll)
-            win_cnt = wins(p1_score, p2_score + new_pos, p1_pos, new_pos, "p1")
-
-        tot_p1_wins += win_cnt[0]
-        tot_p2_wins += win_cnt[1]
-
-    memo[key] = tot_p1_wins, tot_p2_wins
-    return memo[key]
+    pos, scores = pos_init.copy(), [0, 0]
+    rolls = 0
+    for p, roll in enumerate(deter_rolls()):
+        player = p % 2
+        pos[player] = (pos[player] + roll - 1) % 10 + 1
+        scores[player] += pos[player]
+        rolls += 3
+        if scores[player] >= 1_000:
+            return scores[1 - player] * rolls
 
 
 def part2():
-    p1_pos, p2_pos = parse()
-    answer = wins(0, 0, p1_pos, p2_pos, "p1")
-    print(max(answer))
+    return max(run_dirac(pos_init))
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
