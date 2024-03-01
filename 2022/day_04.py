@@ -1,45 +1,15 @@
+with open("2022/data/day_04.txt") as f:
+    pairs = [[int(n) for elf in pair.split(",") for n in elf.split("-")] for pair in f]
+
+
 def part1():
-
-    answer = 0
-
-    def is_included(a: list[str], b: list[str]):
-        if (int(a[0]) >= int(b[0]) and int(a[1]) <= int(b[1])) or (
-            int(a[0]) <= int(b[0]) and int(a[1]) >= int(b[1])
-        ):
-            return True
-        return False
-
-    with open("2022/data/day_04.txt") as f:
-        for line in f:
-            sectors = [el.split("-") for el in line.strip().split(",")]
-            if is_included(sectors[0], sectors[1]):
-                answer += 1
-
-    print(answer)
+    return sum((b_lo >= a_lo and b_hi <= a_hi) or (a_lo >= b_lo and a_hi <= b_hi) for a_lo, a_hi, b_lo, b_hi in pairs)
 
 
 def part2():
-    answer = 0
-
-    def is_overlapping(a: list[str], b: list[str]):
-        if (
-            (int(b[0]) <= int(a[0]) <= int(b[1]))
-            or (int(b[0]) <= int(a[1]) <= int(b[1]))
-            or (int(a[0]) <= int(b[0]) <= int(a[1]))
-            or (int(a[0]) <= int(b[1]) <= int(a[1]))
-        ):
-            return True
-        return False
-
-    with open("2022/data/day_04.txt") as f:
-        for line in f:
-            sectors = [el.split("-") for el in line.strip().split(",")]
-            if is_overlapping(sectors[0], sectors[1]):
-                answer += 1
-
-    print(answer)
+    return sum((b_lo <= a_lo <= b_hi) or (a_lo <= b_lo <= a_hi) for a_lo, a_hi, b_lo, b_hi in pairs)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")

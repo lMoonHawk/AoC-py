@@ -1,84 +1,39 @@
-def part1():
-
-    nb_stacks = 0
-    stacksmap_flag = True
-
+def get_instructions():
     with open("2022/data/day_05.txt") as f:
-        for line in f:
+        stacks_txt, inst_txt = [el.splitlines() for el in f.read().split("\n\n")]
+        nb_stacks = (len(stacks_txt[0]) + 1) // 4
+        stacks = [[] for _ in range(nb_stacks)]
+        for line in reversed(stacks_txt[:-1]):
+            for k in range(nb_stacks):
+                crate = line[k * 4 + 1]
+                if crate != " ":
+                    stacks[k].append(crate)
+        instructions = ((int(el[1]), int(el[3]) - 1, int(el[5]) - 1) for el in (line.split() for line in inst_txt))
+    return stacks, instructions
 
-            if not nb_stacks:
-                # 3 chars per crates + space between - newline char
-                nb_stacks = (len(line)) // 4
-                # Prepare the data structure
-                stacks = [[] for i in range(nb_stacks)]
 
-            if line == "\n" or line.strip().startswith("1"):
-                stacksmap_flag = False
-                # Wait for instructions
-                continue
+def op(count, ver):
+    if ver == 9000:
+        return slice(None, -count - 1, -1)
+    elif ver == 9001:
+        return slice(-count, None, None)
 
-            if stacksmap_flag:
-                # Parse stacks of crates
-                for i in range(nb_stacks):
-                    # 3 chars long + space in between
-                    crate = line[i * 4 : i * 4 + 3]
-                    # Remove brackets and spaces
-                    crate = crate.translate({ord(i): None for i in " []"})
-                    if crate:
-                        stacks[i].append(crate)
-            else:
-                # Instructions parsing & processing
-                count, start, end = [
-                    int(el) for el in line.split() if el.isdigit()
-                ]
-                for i in range(count):
-                    stacks[end - 1].insert(0, stacks[start - 1].pop(0))
 
-    # Show top of stacks
-    print("".join([el[0] for el in stacks]))
+def peek_rearrange(stacks, instructions, ver=9000):
+    for count, start, end in instructions:
+        stacks[end].extend(stacks[start][op(count, ver)])
+        stacks[start] = stacks[start][:-count]
+    return "".join(stack[-1] for stack in stacks)
+
+
+def part1():
+    return peek_rearrange(*get_instructions(), ver=9000)
 
 
 def part2():
-    nb_stacks = 0
-    stacksmap_flag = True
-
-    with open("2022/data/day_05.txt") as f:
-        for line in f:
-
-            if not nb_stacks:
-                # 3 chars per crates + space between - newline char
-                nb_stacks = (len(line)) // 4
-                # Prepare the data structure
-                stacks = [[] for i in range(nb_stacks)]
-
-            if line == "\n" or line.strip().startswith("1"):
-                stacksmap_flag = False
-                # Wait for instructions
-                continue
-
-            if stacksmap_flag:
-                # Parse stacks of crates
-                for i in range(nb_stacks):
-                    # 3 chars long + space in between
-                    crate = line[i * 4 : i * 4 + 3]
-                    # Remove brackets and spaces
-                    crate = crate.translate({ord(i): None for i in " []"})
-                    if crate:
-                        stacks[i].append(crate)
-            else:
-                # Instructions parsing & processing
-                count, start, end = [
-                    int(el) for el in line.split() if el.isdigit()
-                ]
-                # Reverse crates
-                stacks[start - 1][:count] = stacks[start - 1][:count][::-1]
-                for i in range(count):
-                    stacks[end - 1].insert(0, stacks[start - 1].pop(0))
-
-    # Show top of stacks
-    print("".join([el[0] for el in stacks]))
+    return peek_rearrange(*get_instructions(), ver=9001)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
