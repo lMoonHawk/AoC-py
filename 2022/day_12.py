@@ -1,73 +1,48 @@
-height_map: list[list[int]] = []
-
 with open("2022/data/day_12.txt") as f:
-    for i, line in enumerate(f):
-        row = []
-        for j, elevation in enumerate(line.strip()):
-            if elevation == "S":
-                start = (i, j)
-                row.append(1)
-            elif elevation == "E":
-                end = (i, j)
-                row.append(26)
-            else:
-                # Convert letter a - z to 1 - 26
-                elevation_int = ord(elevation) - 96
-                row.append(int(elevation_int))
-        height_map.append(row)
-
-nb_rows = len(height_map)
-nb_cols = len(height_map[0])
+    area = [[ord(elevation) - 97 for elevation in line.strip()] for line in f]
+for i, row in enumerate(area):
+    for j, height in enumerate(row):
+        if height == ord("S") - 97:
+            si, sj = i, j
+            area[si][sj] = ord("a") - 97
+        elif height == ord("E") - 97:
+            ei, ej = i, j
+            area[ei][ej] = ord("a") - 97
 
 
-def get_elevation(coord):
-    i, j = coord
-    return height_map[i][j]
-
-
-def search(coord):
-    visited = set([coord])
-    queue = [[coord, 0]]
-
+def min_steps_from(i, j, area):
+    queue = [(i, j, 0)]
+    visited = {queue[0]}
     while queue:
-        current, distance = queue.pop(0)
-        if current == end:
-            return distance
-        i, j = current
-        neighbors = [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]
-        for neighbor in neighbors:
-            n_i, n_j = neighbor
-            if neighbor in visited:
+        i, j, steps = queue.pop(0)
+        if (i, j) == (ei, ej):
+            return steps
+        for ni, nj in [(i + 1, j), (i, j + 1), (i - 1, j), (i, j - 1)]:
+            if not (0 <= ni < len(area) and 0 <= nj < len(area[0])):
                 continue
-            if n_i < 0 or n_i >= nb_rows or n_j < 0 or n_j >= nb_cols:
+            if area[ni][nj] - 1 > area[i][j]:
                 continue
-            if height_map[n_i][n_j] > height_map[i][j] + 1:
+            if (ni, nj) in visited:
                 continue
-            visited.add(neighbor)
-            queue.append([neighbor, distance + 1])
+            visited.add((ni, nj))
+            queue.append((ni, nj, steps + 1))
 
 
 def part1():
-    print(search(start))
+    return min_steps_from(si, sj, area)
 
 
 def part2():
-
-    min_path = None
-    for i, row in enumerate(height_map):
-        for j, elevation in enumerate(row):
-            if elevation != 1:
-                continue
-
-            # None if no path
-            steps = search(tuple([i, j]))
-
-            if steps is not None and (min_path is None or steps < min_path):
-                min_path = steps
-
-    print(min_path)
+    min_steps = None
+    for i, row in enumerate(area):
+        for j, height in enumerate(row):
+            if height == 0:
+                if result := min_steps_from(i, j, area):
+                    if min_steps is None or result < min_steps:
+                        min_steps = result
+    return min_steps
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
