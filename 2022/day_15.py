@@ -1,100 +1,71 @@
-ROW = 2000000
-RANGE_MIN = 0
-RANGE_MAX = 4_000_000
+class Vec2:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def in_bounds(self, bounds):
+        return bounds.x <= self.x <= bounds.y and bounds.x <= self.y <= bounds.y
+
+    def distance(self, other):
+        return abs(self.x - other.x) + abs(self.y - other.y)
 
 
-def distance(point1, point2):
-    return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1])
+def merge_intervals(intervals):
+    intervals.sort(reverse=True)
+    unique_intervals = [intervals.pop()]
+    while intervals:
+        lo, hi = intervals.pop()
+        prev_lo, prev_hi = unique_intervals.pop()
+        if prev_lo <= lo <= prev_hi:
+            unique_intervals.append((prev_lo, max(prev_hi, hi)))
+        else:
+            unique_intervals.append((lo, hi))
+            unique_intervals.append((prev_lo, prev_hi))
+    return unique_intervals
+
+
+with open("2022/data/day_15.txt") as f:
+    coords = [[Vec2(*[int(el.split("=")[1]) for el in axis.split(", ")]) for axis in line.split(": ")] for line in f]
 
 
 def part1():
-    ranges_row = []
-    beacons_row = set()
-    with open("2022/data/day_15.txt") as f:
-        for line in f:
-            # Isolate numbers and extract them
-            numbers = [
-                int(c)
-                for c in line.replace(",", " ")
-                .replace("=", " ")
-                .replace(":", " ")
-                .split()
-                if c.lstrip("-").isdigit()
-            ]
-            sensor = tuple([numbers[0], numbers[1]])
-            beacon = tuple([numbers[2], numbers[3]])
-            if beacon[1] == ROW:
-                beacons_row.add(beacon)
-            reach = distance(sensor, beacon)
-            # Distance left when reaching ROW directly
-            left_row = reach - abs(sensor[1] - ROW)
-            # Range of reach on row ROW
-            if left_row > 0:
-                range_row = [sensor[0] - left_row, sensor[0] + left_row]
-                ranges_row.append(range_row)
-
-    # Merge ranges
-    ranges_row.sort()
-    interval = [ranges_row.pop(0)]
-
-    for i in ranges_row:
-        if interval[-1][0] <= i[0] <= interval[-1][1]:
-            interval[-1][1] = max(interval[-1][1], i[1])
-        else:
-            interval.append(i)
-    # Sum of all intervals covered by sensors minus beacons on the row
-    answer = sum(i[1] - i[0] + 1 for i in interval) - len(beacons_row)
-    print(answer)
+    row = 2_000_000
+    intervals = []
+    beacons_in_row = set()
+    for sensor, beacon in coords:
+        if beacon.y == row:
+            beacons_in_row.add((beacon.x, beacon.y))
+        radius = sensor.distance(beacon)
+        if (reach := radius - abs(sensor.y - row)) > 0:
+            intervals.append((sensor.x - reach, sensor.x + reach))
+    return sum(hi - lo + 1 for lo, hi in merge_intervals(intervals)) - len(beacons_in_row)
 
 
 def part2():
-    diags_up = set()
-    diags_down = set()
-    sensors = []
-    with open("2022/data/day_15.txt") as f:
-        for line in f:
-            # Isolate numbers and extract them
-            numbers = [
-                int(c)
-                for c in line.replace(",", " ")
-                .replace("=", " ")
-                .replace(":", " ")
-                .split()
-                if c.lstrip("-").isdigit()
-            ]
-            sensor = tuple([numbers[0], numbers[1]])
+    bounds = Vec2(0, 4_000_000)
+    pos_diag_intercepts = []
+    neg_diag_intercepts = []
+    for sensor, beacon in coords:
+        # The gap has to be on the edge of a detection range, otherwise the gap would be greater than one cell wide.
+        # Collect the 4 outside lines of each diamond shape
+        # Since all slopes are either 1 or -1 we can store only the intercept
+        # b = y₁ +/- x₁
+        radius = sensor.distance(beacon)
+        pos_diag_intercepts.append(sensor.y - sensor.x + radius + 1)
+        pos_diag_intercepts.append(sensor.y - sensor.x - radius - 1)
+        neg_diag_intercepts.append(sensor.y + sensor.x + radius + 1)
+        neg_diag_intercepts.append(sensor.y + sensor.x - radius - 1)
 
-            beacon = tuple([numbers[2], numbers[3]])
-            outside = distance(sensor, beacon) + 1
-
-            sensors.append([sensor, outside - 1])
-
-            # Store x-axis coord of the 4 lines outside the sensor's range
-            # /
-            diags_up.add(outside + sensor[1] - sensor[0])
-            diags_up.add(-outside + sensor[1] - sensor[0])
-            # \
-            diags_down.add(outside + sensor[1] + sensor[0])
-            diags_down.add(-outside + sensor[1] + sensor[0])
-
-    def search_empty():
-        # Missing beacon must lie just 1 out of reach
-        # Let's check for shared spots like this
-        # i.e. intersection of all diagonals forming the scanner's diamond
-        for up in diags_up:
-            for down in diags_down:
-                intersection = tuple([(down - up) // 2, (down + up) // 2])
-                if all(RANGE_MIN <= p <= RANGE_MAX for p in intersection):
-                    if all(
-                        distance(sensor[0], intersection) > sensor[1]
-                        for sensor in sensors
-                    ):
-                        return intersection
-
-    intersection = search_empty()
-    print(4_000_000 * intersection[0] + intersection[1])
+    for up in pos_diag_intercepts:
+        for down in neg_diag_intercepts:
+            # Check each intersections of these lines for a point outside all ranges
+            intersection = Vec2((down - up) // 2, (down + up) // 2)
+            if not intersection.in_bounds(bounds):
+                continue
+            if all(sensor.distance(intersection) > sensor.distance(beacon) for sensor, beacon in coords):
+                return 4_000_000 * intersection.x + intersection.y
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
