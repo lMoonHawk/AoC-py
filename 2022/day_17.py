@@ -1,91 +1,89 @@
 with open("2022/data/day_17.txt") as f:
-    jets_file = f.read()
+    jets = f.readline().strip()
 
 
-def gen_jets():
-    while True:
-        for jet in jets_file:
-            yield jet
+SHAPES = [
+    [(0, 0), (1, 0), (2, 0), (3, 0)],
+    [(1, 2), (0, 1), (1, 1), (2, 1), (1, 0)],
+    [(2, 2), (2, 1), (0, 0), (1, 0), (2, 0)],
+    [(0, 3), (0, 2), (0, 1), (0, 0)],
+    [(0, 1), (1, 1), (0, 0), (1, 0)],
+]
 
 
-def gen_rocks():
-    # Coordinates of each rocks, starting at [0,0] bottom-left
-    rocks = [
-        [(0, 0), (1, 0), (2, 0), (3, 0)],
-        [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)],
-        [(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)],
-        [(0, 0), (0, 1), (0, 2), (0, 3)],
-        [(0, 0), (1, 0), (0, 1), (1, 1)],
-    ]
-    while True:
-        for rock in rocks:
-            # Wait for "send" instruction with spawn_y coordinates
-            lowest = yield
-            out = []
-            for point in rock:
-                out.append(tuple([point[0] + 2, point[1] + lowest]))
-            yield out
+class Rock(list):
+    def top(self):
+        return max(y for _, y in self)
 
+    def left(self):
+        return min(x for x, _ in self)
 
-def check_rock(rock, mouv, obstacles):
-    for point in rock:
-        check = tuple([point[0] + mouv[0], point[1] + mouv[1]])
-        if check in obstacles or check[1] < 0 or not (0 <= check[0] <= 6):
-            return False
-    return True
-
-
-def move_rock(rock, mouv, obstacles):
-    if not check_rock(rock, mouv, obstacles):
+    def move(self, mx, my, settled):
+        new_positions = [(x + mx, y + my) for x, y in self]
+        if all(0 <= x < 7 and y > 0 and (x, y) not in settled for x, y in new_positions):
+            self[:] = new_positions
+            return True
         return False
-    for index, point in enumerate(rock):
-        rock[index] = tuple([point[0] + mouv[0], point[1] + mouv[1]])
-    return True
+
+    def appear(self, highest_rock, settled):
+        x_offset = 2
+        y_offset = highest_rock + 3 + 1
+        self.move(x_offset, y_offset, settled)
 
 
-def rock_fall(rock, jets, obstacles):
-    while True:
-        jet = next(jets)
-        offset = (-1, 0) if jet == "<" else (1, 0)
-        move_rock(rock, offset, obstacles)
-        offset = (0, -1)
-        if not move_rock(rock, offset, obstacles):
-            return rock
+def simulate(nb_rocks):
+    cache = dict()
+    settled = set()
+    directions = {">": (1, 0), "<": (-1, 0)}
+    shape_index = jet_index = 0
+    heights = [0]
+    consecutive = False
+    n = 0
+    while n < nb_rocks:
+        n += 1
+        heights.append(heights[-1])
+        rock = Rock(SHAPES[shape_index])
+        rock.appear(heights[-1], settled)
+        shape_index = (shape_index + 1) % len(SHAPES)
+
+        while True:
+            jet = jets[jet_index]
+            jet_index = (jet_index + 1) % len(jets)
+            mx, my = directions[jet]
+            rock.move(mx, my, settled)
+            if not rock.move(0, -1, settled):
+                settled.update(rock)
+                heights[-1] = max(rock.top(), heights[-1])
+                break
+
+        if (key := (shape_index, jet_index, rock.left())) in cache:
+            # Make sure this is the second time in a row that the cache is hit
+            # Otherwise, the layers below may be different and generate different results
+            if consecutive:
+                base_n = cache[key]
+                base_height = heights[base_n]
+                cycle_n = n - base_n
+                cycle_height = heights[n] - base_height
+                nb_full_cycles = (nb_rocks - base_n) // cycle_n
+                full_cycles_n = base_n + nb_full_cycles * cycle_n
+                full_cycles_height = base_height + nb_full_cycles * cycle_height
+                remainder_height = heights[base_n + nb_rocks - full_cycles_n] - heights[base_n]
+                return full_cycles_height + remainder_height
+            consecutive = True
+        else:
+            consecutive = False
+            cache[key] = n
+    return heights[-1]
 
 
 def part1():
-    rocks = gen_rocks()
-    jets = gen_jets()
-    obstacles = set()
-
-    spawn_y = 3
-    count = 0
-    done = False
-
-    while not done:
-        next(rocks)
-        # Get coordinates of the rock
-        rock = rocks.send(spawn_y)
-
-        rest_position = rock_fall(rock, jets, obstacles)
-
-        count += 1
-        for point in rest_position:
-            obstacles.add(point)
-
-        rock_max = max(point[1] for point in rest_position) + 4
-        spawn_y = rock_max if rock_max > spawn_y else spawn_y
-
-        if count == 2022:
-            done = True
-
-    print(spawn_y - 3)
+    return simulate(2022)
 
 
 def part2():
-    pass
+    return simulate(1_000_000_000_000)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
