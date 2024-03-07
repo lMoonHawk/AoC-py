@@ -48,12 +48,12 @@ def part2():
     stack = [(hi)]
     while stack:
         cube = stack.pop()
-        perimeter += sum(adj in cubes for adj in cube.adjacents())
         for adj in cube.adjacents():
-            if adj in cubes or adj in visited or not (lo <= adj <= hi):
-                continue
-            visited.add(adj)
-            stack.append(adj)
+            if adj in cubes:
+                perimeter += 1
+            elif adj not in visited and lo <= adj <= hi:
+                visited.add(adj)
+                stack.append(adj)
     return perimeter
 
 
