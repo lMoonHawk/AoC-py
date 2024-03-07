@@ -1,53 +1,62 @@
+class Vec3:
+    def __init__(self, x=0, y=0, z=0):
+        self.x = int(x)
+        self.y = int(y)
+        self.z = int(z)
+
+    def __eq__(self, other):
+        return (self.x, self.y, self.z) == (other.x, other.y, other.z)
+
+    def __hash__(self):
+        return hash((self.x, self.y, self.z))
+
+    def __add__(self, other):
+        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __le__(self, other):
+        return self.x <= other.x and self.y <= other.y and self.z <= other.z
+
+    def __ge__(self, other):
+        return self.x >= other.x and self.y >= other.y and self.z >= other.z
+
+    def adjacents(self):
+        yield from (self + Vec3(*o) for o in [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)])
+
+    @staticmethod
+    def comp_min(it):
+        return Vec3(min(it, key=lambda v: v.x).x, min(it, key=lambda v: v.y).y, min(it, key=lambda v: v.z).z)
+
+    @staticmethod
+    def comp_max(it):
+        return Vec3(max(it, key=lambda v: v.x).x, max(it, key=lambda v: v.y).y, max(it, key=lambda v: v.z).z)
+
+
+with open("2022/data/day_18.txt") as f:
+    cubes = {Vec3(*cube.strip().split(",")) for cube in f}
+
+
 def part1():
-    drops = []
-    ranges = [None, None, None]
-    with open("2022/data/day_18.txt") as f:
-        for line in f:
-            drop = tuple([int(drop) for drop in line.strip().split(",")])
-            drops.append(drop)
-
-            for i in range(len(ranges)):
-                ranges[i] = (
-                    drop[i] + 1
-                    if ranges[i] is None or drop[i] + 1 > ranges[i]
-                    else ranges[i]
-                )
-
-    grid = [
-        [[0 for _ in range(ranges[2])] for _ in range(ranges[1])]
-        for _ in range(ranges[0])
-    ]
-
-    for drop in drops:
-        grid[drop[0]][drop[1]][drop[2]] = 1
-
-    perimeter = 0
-    for i in range(ranges[0]):
-        for j in range(ranges[1]):
-            for k in range(ranges[2]):
-
-                if grid[i][j][k] == 0:
-                    continue
-                if i - 1 < 0 or grid[i - 1][j][k] == 0:
-                    perimeter += 1
-                if i + 1 >= ranges[0] or grid[i + 1][j][k] == 0:
-                    perimeter += 1
-                if j - 1 < 0 or grid[i][j - 1][k] == 0:
-                    perimeter += 1
-                if j + 1 >= ranges[1] or grid[i][j + 1][k] == 0:
-                    perimeter += 1
-                if k - 1 < 0 or grid[i][j][k - 1] == 0:
-                    perimeter += 1
-                if k + 1 >= ranges[2] or grid[i][j][k + 1] == 0:
-                    perimeter += 1
-
-    print(perimeter)
+    return sum(adj not in cubes for cube in cubes for adj in cube.adjacents())
 
 
 def part2():
-    pass
+    lo = Vec3.comp_min(cubes) + Vec3(-1, -1, -1)
+    hi = Vec3.comp_max(cubes) + Vec3(1, 1, 1)
+
+    visited = set()
+    perimeter = 0
+    stack = [(hi)]
+    while stack:
+        cube = stack.pop()
+        perimeter += sum(adj in cubes for adj in cube.adjacents())
+        for adj in cube.adjacents():
+            if adj in cubes or adj in visited or not (lo <= adj <= hi):
+                continue
+            visited.add(adj)
+            stack.append(adj)
+    return perimeter
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
