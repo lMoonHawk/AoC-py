@@ -1,108 +1,62 @@
-def resolve(monkeys, monkey):
-    # Solve the tree by recursively solving branches until we find a leaf
-    maths = monkeys[monkey]
+with open("2022/data/day_21.txt") as f:
+    monkeys = {k: int(v) if v.strip().isnumeric() else v.split() for k, v in (line.split(": ") for line in f)}
 
-    if maths[0].isdigit():
-        return int(maths[0])
-
-    monkey1, operation, monkey2 = maths
-    monkey1 = resolve(monkeys, monkey1)
-    monkey2 = resolve(monkeys, monkey2)
-
-    if operation == "+":
-        return monkey1 + monkey2
-    if operation == "-":
-        return monkey1 - monkey2
-    if operation == "*":
-        return monkey1 * monkey2
-    if operation == "/":
-        return monkey1 // monkey2
+ops = {
+    "+": lambda x, y: x + y,
+    "-": lambda x, y: x - y,
+    "*": lambda x, y: x * y,
+    "/": lambda x, y: x // y,
+}
+inverted_ops = {
+    "+": lambda x, y, _: x - y,
+    "-": lambda x, y, z: x + y if z else y - x,
+    "*": lambda x, y, _: x // y,
+    "/": lambda x, y, z: x * y if z else y // x,
+}
 
 
-def is_branch(monkeys, monkey):
-    # Recursive function to determine if humn is in the branch "monkey"
-    if monkey.isdigit():
-        return False
+def contains_humn(monkey, monkeys):
+    val = monkeys[monkey]
     if monkey == "humn":
         return True
-
-    maths = monkeys[monkey]
-    if maths[0].isdigit():
+    if isinstance(val, int):
         return False
-    if "humn" in maths:
+    if "humn" in val:
         return True
-    if is_branch(monkeys, maths[0]) or is_branch(monkeys, maths[2]):
-        return True
-    return False
+    m1, _, m2 = val
+    return contains_humn(m1, monkeys) or contains_humn(m2, monkeys)
 
 
-def humn(monkeys, humn_branch, value):
-    # Recursive function to pass the value down until arriving at humn
-    if humn_branch == "humn":
-        return value
+def yell(monkey, monkeys):
+    val = monkeys[monkey]
+    if isinstance(val, int):
+        return val
+    m1, op, m2 = val
+    return ops[op](yell(m1, monkeys), yell(m2, monkeys))
 
-    maths = monkeys[humn_branch]
 
-    if is_branch(monkeys, maths[0]):
-        humn_branch, other_branch = maths[0], maths[2]
-    else:
-        humn_branch, other_branch = maths[2], maths[0]
+def solve(monkey, monkeys):
+    m1, op, m2 = monkeys[monkey]
+    humn_branch, eval_branch = (m1, m2) if contains_humn(m1, monkeys) else (m2, m1)
+    value = yell(eval_branch, monkeys)
 
-    # Value of the branch not containing humn
-    subvalue = resolve(monkeys, other_branch)
-    # Depending on the operator, modify the value to know what the
-    #   current humn branch has to evaluate to
-    if maths[1] == "+":
-        value -= subvalue
-    elif maths[1] == "*":
-        value //= subvalue
-    elif maths[1] == "/":
-        if maths[0] == humn_branch:
-            value *= subvalue
-        else:
-            value = subvalue // value
-    elif maths[1] == "-":
-        if maths[0] == humn_branch:
-            value += subvalue
-        else:
-            value = subvalue - value
+    while humn_branch != "humn":
+        m1, op, m2 = monkeys[humn_branch]
+        humn_branch, eval_branch = (m1, m2) if contains_humn(m1, monkeys) else (m2, m1)
 
-    return humn(monkeys, humn_branch, value)
+        evaled_branch = yell(eval_branch, monkeys)
+        value = inverted_ops[op](value, evaled_branch, humn_branch == m1)
+    return value
 
 
 def part1():
-    monkeys = dict()
-
-    with open("2022/data/day_21.txt") as f:
-        for line in f:
-            monkey, maths = line.split(":")
-            maths = maths.strip().split()
-            monkeys[monkey] = maths
-
-    print(resolve(monkeys, "root"))
+    return yell("root", monkeys)
 
 
 def part2():
-    monkeys = dict()
-
-    with open("2022/data/day_21.txt") as f:
-        for line in f:
-            monkey, maths = line.split(":")
-            maths = maths.strip().split()
-            monkeys[monkey] = maths
-
-    maths = monkeys["root"]
-    if is_branch(monkeys, maths[0]):
-        humn_branch, other_branch = maths[0], maths[2]
-    else:
-        humn_branch, other_branch = maths[2], maths[0]
-
-    # Humn branch has to evaluate to "value"
-    value = resolve(monkeys, other_branch)
-
-    print(humn(monkeys, humn_branch, value))
+    return solve("root", monkeys)
 
 
 if __name__ == "__main__":
-    part1()
-    part2()
+    print(f"Part 1: {part1()}")
+    print(f"Part 2: {part2()}")
