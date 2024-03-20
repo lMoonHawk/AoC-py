@@ -3,13 +3,47 @@ with open("2023/data/day_21.txt") as f:
 (start,) = [(x, y) for y, row in enumerate(plots) for x, sq in enumerate(row) if sq == "S"]
 
 
+class Node:
+    def __init__(self, data, prev=None, next=None):
+        self.data = data
+        self.prev = prev
+        self.next = next
+
+
+class Queue:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def push(self, data):
+        new = Node(data)
+        if self.head is None:
+            self.head = new
+        else:
+            new.prev = self.tail
+            self.tail.next = new
+        self.tail = new
+
+    def pop(self):
+        if self.head is None:
+            raise IndexError
+        out = self.head.data
+        self.head = self.head.next
+        if self.head:
+            self.head.prev = None
+        else:
+            self.tail = None
+        return out
+
+
 def traverse(start, plots, stop):
     parity = stop % 2
     counter = 0
     visited = set()
-    queue = [(start, 0)]
-    while queue:
-        (x, y), steps = queue.pop(0)
+    queue = Queue()
+    queue.push((start, 0))
+    while queue.head:
+        (x, y), steps = queue.pop()
         if (x, y) in visited:
             continue
         visited.add((x, y))
@@ -21,7 +55,7 @@ def traverse(start, plots, stop):
             nx, ny = x + mx, y + my
             if plots[ny % len(plots[0])][nx % len(plots)] == "#":
                 continue
-            queue.append(((nx, ny), steps + 1))
+            queue.push(((nx, ny), steps + 1))
 
 
 def part1():
