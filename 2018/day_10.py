@@ -47,7 +47,7 @@ def part1():
 
 def part2():
     k, _ = find_sec()
-    return k
+    return k -1
 
 
 if __name__ == "__main__":
